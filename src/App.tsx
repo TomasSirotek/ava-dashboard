@@ -1,5 +1,5 @@
-import { lazy, Suspense, useState } from "react"
-import { Home, OctagonX } from "lucide-react"
+import { lazy, Suspense, useEffect, useState } from "react"
+import { Check, Home, Maximize2, Minimize2, OctagonX, VideoOff } from "lucide-react"
 import { useMockRobot, names, type RobotState } from "@/lib/mock-robot"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -115,21 +115,117 @@ function PoseCard() {
   )
 }
 
-function Viewport({ robot }: { robot: RobotState }) {
+// Click-to-expand preview (like picture-in-picture): the tile grows in place, Esc or a second click collapses it.
+// The expanded card floats over the 3D view (anchored bottom-left of its slot), so it never shifts layout or scrolls.
+// Pass `src` (e.g. an MJPEG stream URL from web_video_server) once the Kinect feed exists.
+function CameraCard({ src, onReconnect }: { src?: string; onReconnect?: () => void }) {
+  const [expanded, setExpanded] = useState(false)
+  useEffect(() => {
+    if (!expanded) return
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setExpanded(false)
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [expanded])
+  const toggle = () => setExpanded(!expanded)
+  const label = expanded ? "Collapse camera" : "Expand camera"
+  return (
+    // Fixed-size slot keeps the collapsed footprint; the card inside is absolutely positioned.
+    <div className="relative h-56 w-72">
+      <div
+        className={cn(
+          "absolute bottom-0 left-0 z-10 rounded-xl border bg-background/90 p-4 shadow-sm backdrop-blur transition-[width] duration-300 ease-out",
+          expanded ? "w-[min(36rem,calc(100vw-2rem))] shadow-lg" : "w-72",
+        )}
+      >
+        <Heading
+          action={
+            <Button size="icon-sm" variant="ghost" aria-label={label} onClick={toggle}>
+              {expanded ? <Minimize2 /> : <Maximize2 />}
+            </Button>
+          }
+        >
+          Camera
+        </Heading>
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-muted">
+          {src ? (
+            <button
+              type="button"
+              aria-expanded={expanded}
+              aria-label={label}
+              onClick={toggle}
+              className="group block size-full cursor-zoom-in aria-expanded:cursor-zoom-out"
+            >
+              <img src={src} alt="Kinect camera feed" className="size-full object-cover" />
+              <span className="absolute right-2 bottom-2 rounded-md bg-background/80 p-1 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                {expanded ? <Minimize2 className="size-3.5" /> : <Maximize2 className="size-3.5" />}
+              </span>
+            </button>
+          ) : (
+            <div className="flex size-full flex-col items-center justify-center gap-2 text-xs text-muted-foreground">
+              <span className="flex items-center gap-1.5"><VideoOff className="size-4" /> No signal</span>
+              <button
+                type="button"
+                onClick={onReconnect}
+                className="rounded-md border border-black/10 bg-white px-3 py-1 text-xs font-medium text-black shadow-sm hover:bg-neutral-100"
+              >
+                Reconnect
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function Viewport({ robot, joints }: { robot: RobotState; joints: number[] }) {
   const overlay = (
     <div className="pointer-events-none absolute top-4 left-4 flex flex-col gap-3 *:pointer-events-auto">
       <TorqueCard robot={robot} />
       <PoseCard />
+      <CameraCard />
     </div>
   )
   return (
-    <Suspense fallback={<section className="relative flex-1 bg-muted/40 max-lg:min-h-[70svh]">{overlay}</section>}>
-      <RobotViewport>{overlay}</RobotViewport>
+    <Suspense fallback={<section className="relative flex-1 overflow-hidden bg-muted/40 max-lg:min-h-[70svh]">{overlay}</section>}>
+      <RobotViewport
+        joints={joints}
+        jointLabels={names.map((name, i) => `J${i + 1} ${name} · ${robot.jointState.position[i].toFixed(1)}°`)}
+      >
+        {overlay}
+      </RobotViewport>
     </Suspense>
   )
 }
 
-function JointsTab({ robot }: { robot: RobotState }) {
+const pillLabels = ["Pan", "Lift", "Elbow", "Wrist", "Roll", "Grip"]
+
+// Segmented multi-select: joined pills, selected ones get a tint and a check.
+function JointPills({ joints, onJoints }: { joints: number[]; onJoints: (j: number[]) => void }) {
+  const toggle = (i: number) => onJoints(joints.includes(i) ? joints.filter((j) => j !== i) : [...joints, i].sort())
+  return (
+    <div role="group" aria-label="Highlight joints" className="mb-5 flex overflow-hidden rounded-full border divide-x shadow-xs">
+      {names.map((name, i) => {
+        const on = joints.includes(i)
+        return (
+          <button
+            key={name}
+            type="button"
+            title={`J${i + 1} ${name}`}
+            aria-pressed={on}
+            onClick={() => toggle(i)}
+            className="flex min-w-0 flex-1 items-center justify-center gap-1 py-1.5 text-xs font-medium transition-colors hover:bg-muted aria-pressed:bg-orange-500/15 aria-pressed:text-orange-700 aria-pressed:hover:bg-orange-500/20 dark:aria-pressed:text-orange-300"
+          >
+            {on && <Check className="size-3 shrink-0" />}
+            {pillLabels[i]}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function JointsTab({ robot, selected, onJoints }: { robot: RobotState; selected: number[]; onJoints: (j: number[]) => void }) {
   const [joints, setJoints] = useState(() => robot.commanded)
   const setJoint = (i: number, v: number) => setJoints((cur) => cur.map((x, j) => (j === i ? v : x)))
   return (
@@ -137,11 +233,15 @@ function JointsTab({ robot }: { robot: RobotState }) {
       <Heading action={<Button size="sm" variant="ghost" onClick={() => setJoints(names.map(() => 0))}><Home /> Home</Button>}>
         Joint positions
       </Heading>
+      <JointPills joints={selected} onJoints={onJoints} />
       <div className="flex flex-col gap-5">
         {names.map((name, i) => (
           <div key={name} className="grid grid-cols-[1fr_4.5rem] items-center gap-x-3 gap-y-2">
             <div className="col-span-2 flex items-baseline justify-between text-sm">
-              <span className="font-medium">{name}</span>
+              <span className="flex items-center gap-1.5 font-medium">
+                {selected.includes(i) && <span className="size-1.5 rounded-full bg-orange-500" />}
+                {name}
+              </span>
               <span className="font-mono text-xs text-muted-foreground tabular-nums">
                 live {robot.jointState.position[i].toFixed(1)}°
               </span>
@@ -236,7 +336,7 @@ function ConnectionTab() {
   )
 }
 
-function Sidebar({ robot }: { robot: RobotState }) {
+function Sidebar({ robot, joints, onJoints }: { robot: RobotState; joints: number[]; onJoints: (j: number[]) => void }) {
   return (
     <aside className="w-96 shrink-0 overflow-y-auto border-l max-lg:w-full max-lg:overflow-visible max-lg:border-t max-lg:border-l-0">
       <Tabs defaultValue="joints" className="gap-0">
@@ -248,7 +348,7 @@ function Sidebar({ robot }: { robot: RobotState }) {
           </TabsList>
         </div>
         <TabsContent value="joints" className="flex flex-col gap-8 p-5">
-          <JointsTab robot={robot} />
+          <JointsTab robot={robot} selected={joints} onJoints={onJoints} />
           <TargetTab />
         </TabsContent>
         <TabsContent value="motion" className="p-5"><MotionTab /></TabsContent>
@@ -260,12 +360,13 @@ function Sidebar({ robot }: { robot: RobotState }) {
 
 export default function App() {
   const robot = useMockRobot()
+  const [joints, setJoints] = useState<number[]>([])
   return (
     <div className="flex h-svh flex-col">
       <Header robot={robot} />
       <main className="flex min-h-0 flex-1 max-lg:flex-col max-lg:overflow-y-auto">
-        <Viewport robot={robot} />
-        <Sidebar robot={robot} />
+        <Viewport robot={robot} joints={joints} />
+        <Sidebar robot={robot} joints={joints} onJoints={setJoints} />
       </main>
     </div>
   )
