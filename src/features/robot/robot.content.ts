@@ -1,7 +1,7 @@
 import type { IRobotState } from "@/features/robot/robot.interface"
 
 export const JOINT_NAMES = ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper"]
-export const JOINT_SERVOS = ["SG90", "MG996R", "MG996R", "SG90", "SG90", "SG90"]
+export const JOINT_SERVOS = ["SG90", "MG996R", "MG996R", "MG996R", "SG90", "SG90"]
 
 export const ROBOT_ID = "ava-arm-01"
 export const ROBOT_MODEL = "6-DOF · 6 servos"
@@ -13,7 +13,7 @@ export const RECONNECT_MS = 3000
 export const LATENCY_PROBE_MS = 2000
 
 // Stall torque per servo model (N·m); live effort is shown as a percentage of it.
-export const SERVO_STALL_NM: Record<string, number> = { SG90: 0.1765, MG996R: 1.275 }
+export const SERVO_STALL_NM: Record<string, number> = { SG90: 0.1765, MG996R: 1.079 } // MG996R 11 kg·cm @ 6 V
 
 // ros2_control joint_trajectory_controller command topic (same in Gazebo and on hardware).
 export const TRAJECTORY_TOPIC = "/joint_trajectory_controller/joint_trajectory"

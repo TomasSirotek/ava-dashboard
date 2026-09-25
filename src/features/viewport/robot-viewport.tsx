@@ -1,6 +1,6 @@
 import { Environment, Grid, Lightformer, OrbitControls, useProgress } from "@react-three/drei"
 import { Canvas, type RootState } from "@react-three/fiber"
-import { Suspense, useRef, useState } from "react"
+import { Suspense, useEffect, useRef, useState } from "react"
 import { toast } from "sonner"
 import type { Object3D } from "three"
 import { AxisGizmo } from "@/features/viewport/axis-gizmo"
@@ -8,8 +8,11 @@ import { JointFrame } from "@/features/viewport/joint-frame"
 import { JointTracker } from "@/features/viewport/joint-tracker"
 import { Model } from "@/features/viewport/model"
 import { ModelBoundary } from "@/features/viewport/model-boundary"
+import { PartLabel } from "@/features/viewport/part-label"
+import { PartTracker } from "@/features/viewport/part-tracker"
 import { CANVAS_DPR, JOINT_PARTS, MODEL_HEIGHT, SOFTWARE_RENDERER } from "@/features/viewport/viewport.content"
 import type { IRobotViewportProps } from "@/features/viewport/viewport.interface"
+import { usePartSelectionStore } from "@/features/viewport/viewport.store"
 import { ViewportToolbar } from "@/features/viewport/viewport-toolbar"
 
 export function RobotViewport({ children, joints = [], jointLabels = [] }: IRobotViewportProps) {
@@ -20,6 +23,15 @@ export function RobotViewport({ children, joints = [], jointLabels = [] }: IRobo
   const [failed, setFailed] = useState(false)
   const [lowGraphics, setLowGraphics] = useState(false)
   const { active } = useProgress()
+  const selected = usePartSelectionStore((s) => s.selected)
+  const clearSelection = usePartSelectionStore((s) => s.clear)
+  const partLabel = useRef<HTMLDivElement>(null)
+  // Esc clears the measured part.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && clearSelection()
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [clearSelection])
 
   const resetCamera = () => {
     controls.current?.reset()
@@ -47,6 +59,7 @@ export function RobotViewport({ children, joints = [], jointLabels = [] }: IRobo
         frameloop="demand"
         dpr={lowGraphics ? 1 : CANVAS_DPR}
         onCreated={detectRenderer}
+        onPointerMissed={clearSelection}
         camera={{ position: [1.6, 1.2, 1.6], fov: 45, near: 0.01, far: 100 }}
         className="absolute! inset-0"
       >
@@ -70,6 +83,7 @@ export function RobotViewport({ children, joints = [], jointLabels = [] }: IRobo
         </ModelBoundary>
         <OrbitControls ref={controls} makeDefault target={[0, MODEL_HEIGHT / 2, 0]} minDistance={0.5} maxDistance={8} />
         <JointTracker model={model} joints={joints} frames={frames} />
+        <PartTracker robot={model} label={partLabel} />
         <AxisGizmo />
       </Canvas>
 
@@ -90,6 +104,8 @@ export function RobotViewport({ children, joints = [], jointLabels = [] }: IRobo
       )}
 
       {children}
+
+      {selected && <PartLabel ref={partLabel} part={selected} onClose={clearSelection} />}
 
       <ViewportToolbar grid={grid} onResetCamera={resetCamera} onToggleGrid={toggleGrid} />
     </section>

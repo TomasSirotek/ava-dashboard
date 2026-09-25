@@ -35,3 +35,30 @@ export interface IViewportToolbarProps {
   onResetCamera: () => void
   onToggleGrid: () => void
 }
+
+/** A clicked arm part and its measured lengths. */
+export interface IPartSelection {
+  link: string
+  label: string
+  /** Longest side of the part's main printed mesh, mm. */
+  partMm: number
+  /** Axis-to-axis distance to the next moving joint, mm (null for the last link). */
+  jointMm: number | null
+}
+
+export interface IPartSelectionStore {
+  selected: IPartSelection | null
+  select: (part: IPartSelection) => void
+  clear: () => void
+}
+
+export interface IPartLabelProps {
+  ref: Ref<HTMLDivElement>
+  part: IPartSelection
+  onClose: () => void
+}
+
+export interface IPartTrackerProps {
+  robot: RefObject<Object3D | null>
+  label: RefObject<HTMLDivElement | null>
+}

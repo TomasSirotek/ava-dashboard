@@ -19,6 +19,22 @@ export const JOINT_PARTS = [
   ["moving_jaw_link"], // gripper
 ]
 
+// Friendly names for clickable URDF links.
+export const LINK_LABELS: Record<string, string> = {
+  base_link: "Base",
+  shoulder_link: "Shoulder",
+  upper_arm_link: "Upper arm",
+  lower_arm_link: "Forearm",
+  wrist_link: "Wrist",
+  gripper_link: "Gripper",
+  moving_jaw_link: "Moving jaw",
+}
+
+// Selected part glow.
+export const HIGHLIGHT_EMISSIVE = "#f97316"
+// A pointer that moved more than this (px) between press and release was an orbit drag, not a click.
+export const CLICK_TOLERANCE_PX = 4
+
 // Axis gizmo (bottom-right corner): X/Y/Z in the conventional red/green/blue, offset in px.
 export const GIZMO_AXIS_COLORS: [string, string, string] = ["#e5484d", "#30a46c", "#0090ff"]
 export const GIZMO_MARGIN: [number, number] = [64, 64]
@@ -35,4 +51,8 @@ export const NAVIGATION_HELP = [
   ["Pan", "Right drag · Ctrl/⌘/Shift + left drag"],
   ["Zoom", "Scroll · middle drag"],
   ["Touch", "1 finger rotate · 2 fingers pinch/pan"],
+  ["Measure", "Click a part: highlight + lengths · Esc or click empty space to clear"],
 ]
+
+// Gap (px) between a selected part and its floating label, and from the viewport edge.
+export const PART_LABEL_GAP = 12

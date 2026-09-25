@@ -18,3 +18,9 @@ export interface IControlStore {
   scanPads: () => string | null
   rescanPads: () => void
 }
+
+export interface IAutoModeConfirmProps {
+  open: boolean
+  onConfirm: () => void
+  onCancel: () => void
+}

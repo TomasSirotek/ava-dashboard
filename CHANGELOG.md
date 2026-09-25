@@ -8,8 +8,10 @@ All notable changes to the dashboard. Format: [Keep a Changelog](https://keepach
 - Live data from ROS over rosbridge (`/joint_states`), with rate and round-trip latency; falls back to a built-in simulation when rosbridge is unreachable.
 - Control: joint sliders, Home and e-stop now move the robot — via `/joint_trajectory_controller/joint_trajectory` when connected, the built-in simulation otherwise.
 - Automatic mode demos: Wave, Pick & place, Joint sweep, Home & park.
+- Switching to Automatic mode asks for confirmation first (stronger warning when a live robot is connected).
 - Motion tab: velocity scale and duration set the move time.
 - Axis gizmo (X/Y/Z in the ROS frame) in the 3D viewport.
+- Arm lengths: click an arm part to highlight it and see its lengths (printed part and joint to joint), read from the URDF; Esc clears.
 
 ### Changed
 - 3D viewport loads the robot's URDF (`public/robot`, a symlink to `ava_description`) instead of the demo model.
