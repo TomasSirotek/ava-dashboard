@@ -1,0 +1,118 @@
+import type { IPart, IPartCategoryItem, IPartSpec } from "@/features/parts/parts.interface"
+
+export const PART_CATEGORIES: IPartCategoryItem[] = [
+  { value: "all", label: "All" },
+  { value: "servo", label: "Servos" },
+  { value: "controller", label: "Controller" },
+  { value: "sensor", label: "Sensors" },
+]
+
+const MG996R_SPECS: IPartSpec[] = [
+  { label: "Supply", value: "4.8 – 7.2 V" },
+  { label: "Stall torque", value: "11 kg·cm @ 6 V" },
+  { label: "Speed", value: "0.17 s / 60°" },
+  { label: "Stall current", value: "2.5 A" },
+  { label: "Gears", value: "Metal" },
+  { label: "Weight", value: "55 g" },
+]
+
+const SG90_SPECS: IPartSpec[] = [
+  { label: "Supply", value: "4.8 – 6 V" },
+  { label: "Stall torque", value: "1.8 kg·cm @ 4.8 V" },
+  { label: "Speed", value: "0.1 s / 60°" },
+  { label: "Stall current", value: "0.65 A" },
+  { label: "Gears", value: "Plastic" },
+  { label: "Weight", value: "9 g" },
+]
+
+// Mock catalogue until the real bill of materials and sensor topics exist.
+export const PARTS: IPart[] = [
+  {
+    id: "servo-j1",
+    name: "SG90",
+    kind: "Servo · J1 shoulder_pan",
+    category: "servo",
+    image: "parts/sg90.webp",
+    status: "live",
+    joint: 0,
+    specs: SG90_SPECS,
+    nominalVoltage: 5,
+    idleCurrent: 0.01,
+    maxCurrent: 0.65,
+  },
+  {
+    id: "servo-j4",
+    name: "SG90",
+    kind: "Servo · J4 wrist_flex",
+    category: "servo",
+    image: "parts/sg90.webp",
+    status: "live",
+    joint: 3,
+    specs: SG90_SPECS,
+    nominalVoltage: 5,
+    idleCurrent: 0.01,
+    maxCurrent: 0.65,
+  },
+  {
+    id: "servo-j2",
+    name: "MG996R",
+    kind: "Servo · J2 shoulder_lift",
+    category: "servo",
+    image: "parts/mg996.webp",
+    status: "live",
+    joint: 1,
+    specs: MG996R_SPECS,
+    nominalVoltage: 6,
+    idleCurrent: 0.01,
+    maxCurrent: 2.5,
+  },
+  {
+    id: "servo-j3",
+    name: "MG996R",
+    kind: "Servo · J3 elbow_flex",
+    category: "servo",
+    image: "parts/mg996.webp",
+    status: "live",
+    joint: 2,
+    specs: MG996R_SPECS,
+    nominalVoltage: 6,
+    idleCurrent: 0.01,
+    maxCurrent: 2.5,
+  },
+  {
+    id: "esp32",
+    name: "ESP32-DevKitC",
+    kind: "Microcontroller · servo driver",
+    category: "controller",
+    image: "parts/esp32.webp",
+    status: "live",
+    specs: [
+      { label: "Supply", value: "5 V USB / 3.3 V logic" },
+      { label: "CPU", value: "Dual-core 240 MHz" },
+      { label: "Wireless", value: "Wi-Fi · Bluetooth" },
+      { label: "PWM channels", value: "16" },
+      { label: "Flash", value: "4 MB" },
+    ],
+    nominalVoltage: 5,
+    idleCurrent: 0.12,
+    maxCurrent: 0.25,
+  },
+  {
+    id: "kinect",
+    name: "Kinect v2",
+    kind: "RGB-D camera",
+    category: "sensor",
+    image: "parts/kinect.webp",
+    status: "offline",
+    specs: [
+      { label: "Supply", value: "12 V adapter" },
+      { label: "Color", value: "1920 × 1080 @ 30 fps" },
+      { label: "Depth", value: "512 × 424 · 0.5 – 4.5 m" },
+      { label: "Interface", value: "USB 3.0" },
+      { label: "Power", value: "~15 W" },
+    ],
+    nominalVoltage: 12,
+    idleCurrent: 1,
+    maxCurrent: 1.3,
+  },
+]

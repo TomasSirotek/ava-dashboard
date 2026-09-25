@@ -1,16 +1,12 @@
 import { Moon, Sun } from "lucide-react"
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useTheme } from "@/components/theme-provider"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { THEME_OPTIONS } from "@/features/theme/theme.content"
+import { useTheme } from "@/features/theme/theme.context"
 
-export function ModeToggle() {
+export function ThemeToggle() {
   const { setTheme } = useTheme()
-
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" size="icon" />}>
@@ -19,9 +15,17 @@ export function ModeToggle() {
         <span className="sr-only">Toggle theme</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>Light</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>Dark</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>System</DropdownMenuItem>
+        {THEME_OPTIONS.map(({ value, label }) => (
+          <DropdownMenuItem
+            key={value}
+            onClick={() => {
+              setTheme(value)
+              toast.info(`Theme: ${label}`)
+            }}
+          >
+            {label}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )

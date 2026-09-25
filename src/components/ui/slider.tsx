@@ -1,6 +1,6 @@
 import { Slider as SliderPrimitive } from "@base-ui/react/slider"
-import type * as React from "react"
 import { cn } from "cn"
+import type * as React from "react"
 
 function Slider({
   className,
@@ -11,11 +11,7 @@ function Slider({
   label,
   ...props
 }: SliderPrimitive.Root.Props & { label?: React.ReactNode }) {
-  const _values = Array.isArray(value)
-    ? value
-    : Array.isArray(defaultValue)
-      ? defaultValue
-      : [min, max]
+  const _values = Array.isArray(value) ? value : Array.isArray(defaultValue) ? defaultValue : [min, max]
 
   return (
     <SliderPrimitive.Root
