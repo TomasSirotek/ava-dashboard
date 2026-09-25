@@ -1,5 +1,5 @@
 import { useFrame, useThree } from "@react-three/fiber"
-import { useMemo } from "react"
+import { useEffect, useMemo } from "react"
 import { Box3, Vector3 } from "three"
 import { JOINT_PARTS } from "@/features/viewport/viewport.content"
 import type { IJointTrackerProps } from "@/features/viewport/viewport.interface"
@@ -7,7 +7,9 @@ import type { IJointTrackerProps } from "@/features/viewport/viewport.interface"
 // Projects each selected joint's world-space bounds to screen space every frame and
 // positions its DOM frame directly (no React re-render per frame).
 export function JointTracker({ model, joints, frames }: IJointTrackerProps) {
-  const { camera, size } = useThree()
+  const { camera, size, invalidate } = useThree()
+  // The canvas renders on demand, so redraw once when the highlighted joints change.
+  useEffect(() => invalidate(), [joints, invalidate])
   const box = useMemo(() => new Box3(), [])
   const corner = useMemo(() => new Vector3(), [])
   useFrame(() => {

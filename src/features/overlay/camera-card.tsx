@@ -22,7 +22,7 @@ export function CameraCard({ src, onReconnect }: ICameraCardProps) {
     <div className="relative min-h-32 w-72 flex-1 shrink!">
       <div
         className={cn(
-          "absolute bottom-0 left-0 z-10 flex flex-col rounded-xl border bg-background/90 p-4 shadow-sm backdrop-blur transition-[width] duration-300 ease-out",
+          "absolute bottom-0 left-0 z-10 flex flex-col rounded-xl border bg-background p-4 shadow-sm transition-[width] duration-300 ease-out",
           expanded ? "w-[min(36rem,calc(100vw-2rem))] shadow-lg" : "top-0 w-72",
         )}
       >

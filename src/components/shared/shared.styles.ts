@@ -2,5 +2,5 @@
 export const whiteButton =
   "border-black/10 bg-white text-black hover:bg-neutral-100 hover:text-black dark:bg-white dark:hover:bg-neutral-100"
 
-// Floating glass card used by every viewport overlay.
-export const overlayCard = "w-72 rounded-xl border bg-background/90 p-4 shadow-sm backdrop-blur"
+// Floating card used by every viewport overlay. Solid, no backdrop blur: blurring the live canvas is costly without a GPU.
+export const overlayCard = "w-72 rounded-xl border bg-background p-4 shadow-sm"

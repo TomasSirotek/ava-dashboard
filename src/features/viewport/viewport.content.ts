@@ -14,6 +14,12 @@ export const JOINT_PARTS = [
   ["Cylinder_017_35", "Cube_007_36", "Cylinder_018_37", "Plane_008_32", "Plane_009_33", "Plane_010_34", "Plane_011_38"], // gripper
 ]
 
+// WebGL renderers that run on the CPU (VMs, no GPU passthrough); the viewport drops to low-graphics mode on these.
+export const SOFTWARE_RENDERER = /llvmpipe|swiftshader|softpipe|software|basic render/i
+
+// Device-pixel-ratio range for the canvas; capped so HiDPI screens don't render 4× the pixels.
+export const CANVAS_DPR: [number, number] = [1, 1.5]
+
 // Mirrors OrbitControls defaults: Ctrl/⌘/Shift swaps rotate and pan.
 export const NAVIGATION_HELP = [
   ["Rotate", "Left drag · Ctrl/⌘/Shift + right drag"],

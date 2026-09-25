@@ -128,7 +128,7 @@ cd ava-arm/dashboard
 
 ## Run
 
-Requires Node and pnpm.
+Requires Node 22.12+ and pnpm.
 
 ```bash
 pnpm install
