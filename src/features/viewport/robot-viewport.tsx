@@ -3,6 +3,7 @@ import { Canvas, type RootState } from "@react-three/fiber"
 import { Suspense, useRef, useState } from "react"
 import { toast } from "sonner"
 import type { Object3D } from "three"
+import { AxisGizmo } from "@/features/viewport/axis-gizmo"
 import { JointFrame } from "@/features/viewport/joint-frame"
 import { JointTracker } from "@/features/viewport/joint-tracker"
 import { Model } from "@/features/viewport/model"
@@ -69,6 +70,7 @@ export function RobotViewport({ children, joints = [], jointLabels = [] }: IRobo
         </ModelBoundary>
         <OrbitControls ref={controls} makeDefault target={[0, MODEL_HEIGHT / 2, 0]} minDistance={0.5} maxDistance={8} />
         <JointTracker model={model} joints={joints} frames={frames} />
+        <AxisGizmo />
       </Canvas>
 
       {JOINT_PARTS.map((_, j) => (
@@ -83,7 +85,7 @@ export function RobotViewport({ children, joints = [], jointLabels = [] }: IRobo
 
       {(failed || active) && (
         <p className="pointer-events-none absolute inset-0 grid place-items-center text-sm text-muted-foreground">
-          {failed ? "Could not load models/demo-arm.usdz" : "Loading model…"}
+          {failed ? "Could not load robot/urdf/ava.urdf" : "Loading model…"}
         </p>
       )}
 

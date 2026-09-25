@@ -22,7 +22,11 @@ export function JointTracker({ model, joints, frames }: IJointTrackerProps) {
         return
       }
       box.makeEmpty()
-      for (const o of parts) box.expandByObject(o)
+      // A URDF link's children include the rest of the arm; box only its own visual meshes.
+      for (const o of parts) {
+        const visuals = o.children.filter((c) => "isURDFVisual" in c)
+        for (const v of visuals.length ? visuals : [o]) box.expandByObject(v)
+      }
       let x0 = Infinity,
         y0 = Infinity,
         x1 = -Infinity,

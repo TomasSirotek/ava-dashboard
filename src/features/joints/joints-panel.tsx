@@ -1,5 +1,4 @@
 import { TriangleAlert } from "lucide-react"
-import { useState } from "react"
 import { toast } from "sonner"
 import { Heading } from "@/components/shared/heading"
 import { whiteButton } from "@/components/shared/shared.styles"
@@ -12,12 +11,12 @@ import { JOINT_NAMES } from "@/features/robot/robot.content"
 import { useRobotStore } from "@/features/robot/robot.store"
 
 export function JointsPanel() {
-  const [joints, setJoints] = useState(() => useRobotStore.getState().commanded)
-  const setJoint = (i: number, v: number) => setJoints((cur) => cur.map((x, j) => (j === i ? v : x)))
+  const joints = useRobotStore((s) => s.commanded)
+  const setJoint = useRobotStore((s) => s.setCommanded)
   const mode = useControlStore((s) => s.mode)
   const locked = useControlStore(selectLocked)
   const goHome = () => {
-    setJoints(JOINT_NAMES.map(() => 0))
+    useRobotStore.getState().setCommandedAll(JOINT_NAMES.map(() => 0))
     toast.success("Joints reset to home")
   }
   return (

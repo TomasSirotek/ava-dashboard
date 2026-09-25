@@ -10,6 +10,8 @@ export function InfoCard() {
   const mode = useControlStore((s) => s.mode)
   const rate = useRobotStore((s) => s.rate)
   const latency = useRobotStore((s) => s.latency)
+  const connected = useRobotStore((s) => s.source === "ros")
+  const status = estop ? "Stopped" : connected ? "Online" : "Offline"
   const rows = [
     ["ID", ROBOT_ID],
     ["Model", ROBOT_MODEL],
@@ -22,11 +24,13 @@ export function InfoCard() {
         <span
           className={cn(
             "flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium",
-            estop ? "bg-red-500/10 text-red-700 dark:text-red-300" : "bg-green-500/10 text-green-700 dark:text-green-300",
+            estop && "bg-red-500/10 text-red-700 dark:text-red-300",
+            !estop && connected && "bg-green-500/10 text-green-700 dark:text-green-300",
+            !estop && !connected && "bg-amber-500/10 text-amber-700 dark:text-amber-300",
           )}
         >
-          <span className={cn("size-1.5 rounded-full", estop ? "bg-red-500" : "bg-green-500")} />
-          {estop ? "Stopped" : "Online"}
+          <span className={cn("size-1.5 rounded-full", estop ? "bg-red-500" : connected ? "bg-green-500" : "bg-amber-500")} />
+          {status}
         </span>
       </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-xs">

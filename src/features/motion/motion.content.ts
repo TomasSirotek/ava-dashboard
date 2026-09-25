@@ -5,4 +5,7 @@ export const MOTION_TARGETS: IMotionTargetItem[] = [
   { value: "real", label: "Hardware" },
 ]
 
-export const MOTION_DEFAULTS = { velocity: 70, accel: 45, duration: "2.0" }
+export const MOTION_DEFAULTS = { velocity: 70, accel: 45, duration: 2 }
+
+// Velocity below this would make a move take forever; the slider floor is treated as this.
+export const MIN_VELOCITY_PCT = 5

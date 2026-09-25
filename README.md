@@ -8,23 +8,26 @@
 
 <p align="center"><img src="docs/image.png" alt="AVA dashboard: 3D arm viewport with torque and pose cards, joint controls on the right" width="100%"></p>
 
-<p align="center"><sub><i>Screenshot of the work-in-progress dashboard — mock data, UI still evolving.</i></sub></p>
+<p align="center"><sub><i>Screenshot of the work-in-progress dashboard — UI still evolving.</i></sub></p>
 
 A static Vite + React SPA that talks to ROS 2 over rosbridge (WebSocket), so it
 needs no server of its own.
 
-> Status: UI driven by mock data. The 3D model loads, but it doesn't follow the
-> joint sliders yet, and the ROS connection isn't wired.
+> Status: shows and drives the robot live over rosbridge (Gazebo today, hardware
+> later). Without ROS it falls back to a built-in simulation. Still placeholders:
+> Current pose card, Solve IK, camera, voice. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Features
 
-**Header**: connection status (turns red on e-stop), current control mode,
+**Header**: connection status — 🟢 Connected (live `/joint_states`), 🟠 No joint data
+(rosbridge up, no robot), 🟠 Simulated (no rosbridge) — current control mode,
 link rate and latency, emergency **Stop / Release**, and a light / dark / system
 theme toggle.
 
-**3D viewport**: the arm model (`public/models/demo-arm.usdz`) with orbit
-controls, a reset-camera button, a grid toggle and a help popover listing every
-mouse and touch control. Joints picked in the Joints tab are outlined with a
+**3D viewport**: the robot's real URDF (`public/robot/urdf/ava.urdf`, see
+[Run](#run)) posed from the joint state, with orbit controls, a reset-camera button,
+a grid toggle, a help popover, and an X/Y/Z axis gizmo in the ROS frame (click an
+axis to look along it). Joints picked in the Joints tab are outlined with a
 labelled box that tracks them on screen.
 
 **Floating cards** over the viewport, sized to always fit its height:
@@ -38,9 +41,9 @@ labelled box that tracks them on screen.
 
 | Tab | What it does |
 | --- | --- |
-| Joints | Slider and number box per joint, Home, joint highlight pills, Cartesian target + Solve IK |
-| Control | Manual / Automatic (voice + neural network, settings mocked) / Controller (browser Gamepad API: detects a real PlayStation or other pad, with Reconnect) |
-| Motion | Simulation vs Hardware target, velocity and acceleration limits, trajectory duration |
+| Joints | Slider and number box per joint (ranges = URDF limits), Home, joint highlight pills, Cartesian target + Solve IK (placeholder) |
+| Control | Manual / Automatic (demos: Wave, Pick & place, Joint sweep, Home & park; voice mocked) / Controller (browser Gamepad API) |
+| Motion | Velocity scale and trajectory duration (set how fast slider moves and demos run); acceleration and Simulation/Hardware are not applied yet |
 | Parts | Hardware list filterable by Servos / Controller / Sensors: photo, live V / A / °C, load and a folding datasheet |
 | Link | rosbridge WebSocket URL and Connect |
 
@@ -57,8 +60,11 @@ toast (sonner, colour-coded: success, info, warning, error).
   subscribe to single values with selectors, so a telemetry tick only re-renders
   the numbers that changed. Purely local UI state stays in `useState`.
 - **Background feeds as hooks.** `app.providers.tsx` runs the hooks that fill the
-  stores (the mock robot feed, the gamepad watcher) and the theme context.
-  Swapping the mock for rosbridge means replacing `use-mock-robot-feed.ts`.
+  stores (the rosbridge feed, the command sender, the demo runner, the gamepad
+  watcher) and the theme context.
+- **One command path.** Sliders and demos set `commanded` in the robot store.
+  With rosbridge it is sent to `/joint_trajectory_controller/joint_trajectory`;
+  without it the built-in simulation eases toward it (`robot.store.ts`).
 - **Layout separate from content.** `layout/app-layout.tsx` is only the page
   shell (header / viewport / sidebar slots and the toaster). `app/app.tsx` fills
   the slots.
@@ -90,7 +96,8 @@ src/
     connection/             rosbridge URL
     overlay/                floating cards over the viewport
     viewport/               three.js canvas, model, joint tracker, toolbar
-    robot/                  robot state store and mock feed
+    robot/                  robot store, rosbridge feed, command sender
+    demos/                  automatic-mode demos and their runner
     theme/                  theme provider and toggle
 ```
 
@@ -135,6 +142,17 @@ pnpm install
 pnpm dev        # dev server at http://localhost:5173
 ```
 
+The robot model comes from the ROS repo through a symlink (git-ignored), so the
+URDF and meshes have one source of truth. Inside ava-arm:
+
+```bash
+ln -s ../../ros2_ws/src/ava_description public/robot
+```
+
+For live data, run rosbridge (`ros2 launch rosbridge_server rosbridge_websocket_launch.xml`,
+default `ws://localhost:9090`; override with `VITE_ROSBRIDGE_URL`). See the
+[ava-arm README](https://github.com/TomasSirotek/ava-arm#run).
+
 ## Scripts
 
 | Script | Does |
@@ -160,5 +178,4 @@ cd dist && python3 -m http.server 8080
 ## Stack
 
 Vite, React 19, TypeScript, Tailwind CSS v4, shadcn/ui (Base UI), three.js /
-react-three-fiber / drei, zustand, sonner, lucide-react, Biome. roslib and
-urdf-loader are installed for the ROS and URDF work that comes next.
+react-three-fiber / drei, zustand, sonner, lucide-react, roslib, urdf-loader, Biome.

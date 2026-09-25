@@ -5,6 +5,7 @@ import type { ControlMode } from "@/features/control/control.interface"
 import { useControlStore } from "@/features/control/control.store"
 import { ControllerStatus } from "@/features/control/controller-status"
 import { VoiceSettings } from "@/features/control/voice-settings"
+import { DemoPanel } from "@/features/demos/demo-panel"
 
 export function ControlPanel() {
   const mode = useControlStore((s) => s.mode)
@@ -27,7 +28,12 @@ export function ControlPanel() {
       {mode === "manual" && (
         <p className="text-sm text-muted-foreground">Move the arm with the sliders and target position in the Joints tab.</p>
       )}
-      {mode === "auto" && <VoiceSettings />}
+      {mode === "auto" && (
+        <>
+          <DemoPanel />
+          <VoiceSettings />
+        </>
+      )}
       {mode === "controller" && <ControllerStatus />}
     </div>
   )

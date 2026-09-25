@@ -27,3 +27,6 @@ pnpm-debug.log*
 *.swp
 .DS_Store
 Thumbs.db
+
+# symlink into ../ros2_ws/src/ava_description (URDF + meshes, single source of truth)
+/public/robot

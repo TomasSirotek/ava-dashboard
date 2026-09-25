@@ -1,18 +1,27 @@
-// Served from public/models/, relative to the app base so it works from any static path.
-export const MODEL_URL = `${import.meta.env.BASE_URL}models/demo-arm.usdz`
+// public/robot is a symlink to ros2_ws/src/ava_description, so the browser sees the package
+// layout and the URDF's package://ava_description/... mesh paths map onto it unchanged.
+export const ROBOT_URDF_URL = `${import.meta.env.BASE_URL}robot/urdf/ava.urdf`
+export const ROBOT_PACKAGES = { ava_description: `${import.meta.env.BASE_URL}robot` }
 
-// Models arrive in arbitrary units; normalise to this height and stand it on the grid.
+// URDF is in metres and the arm is ~0.35 m long; scale it up to fit the MODEL_HEIGHT framing.
+export const ROBOT_SCALE = 2
+
+// Scene height the camera and orbit target are framed around.
 export const MODEL_HEIGHT = 1
 
-// The demo model is a flat, unrigged mesh export, so each joint is approximated by the meshes around it.
+// URDF link moved by each joint (same order as JOINT_NAMES); the highlight box wraps that link's own meshes.
 export const JOINT_PARTS = [
-  ["Cylinder_2", "Cylinder_001_3", "Cylinder_003_4"], // shoulder_pan: turntable
-  ["Cube_002_11", "Plane_003_14"], // shoulder_lift: base bracket
-  ["Cube_004_17", "Plane_004_15"], // elbow_flex
-  ["Cube_005_23", "Plane_006_24"], // wrist_flex
-  ["Cube_006_29", "Cylinder_015_30", "Cylinder_016_31"], // wrist_roll
-  ["Cylinder_017_35", "Cube_007_36", "Cylinder_018_37", "Plane_008_32", "Plane_009_33", "Plane_010_34", "Plane_011_38"], // gripper
+  ["shoulder_link"], // shoulder_pan
+  ["upper_arm_link"], // shoulder_lift
+  ["lower_arm_link"], // elbow_flex
+  ["wrist_link"], // wrist_flex
+  ["gripper_link"], // wrist_roll
+  ["moving_jaw_link"], // gripper
 ]
+
+// Axis gizmo (bottom-right corner): X/Y/Z in the conventional red/green/blue, offset in px.
+export const GIZMO_AXIS_COLORS: [string, string, string] = ["#e5484d", "#30a46c", "#0090ff"]
+export const GIZMO_MARGIN: [number, number] = [64, 64]
 
 // WebGL renderers that run on the CPU (VMs, no GPU passthrough); the viewport drops to low-graphics mode on these.
 export const SOFTWARE_RENDERER = /llvmpipe|swiftshader|softpipe|software|basic render/i

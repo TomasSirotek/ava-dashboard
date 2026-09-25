@@ -9,7 +9,9 @@ import { firstValue } from "@/lib/utils"
 
 export function JointRow({ index, value, disabled, onChange }: IJointRowProps) {
   const name = JOINT_NAMES[index]
+  const limits = JOINT_LIMITS[index]
   const live = useRobotStore((s) => s.jointState.position[index])
+  const source = useRobotStore((s) => s.source)
   const highlighted = useJointHighlightStore((s) => s.highlighted.includes(index))
   return (
     <div className="grid grid-cols-[1fr_5.5rem] items-center gap-x-3 gap-y-2">
@@ -18,12 +20,14 @@ export function JointRow({ index, value, disabled, onChange }: IJointRowProps) {
           {highlighted && <span className="size-1.5 rounded-full bg-orange-500" />}
           {name}
         </span>
-        <span className="font-mono text-xs text-muted-foreground tabular-nums">live {live.toFixed(1)}°</span>
+        <span className="font-mono text-xs text-muted-foreground tabular-nums">
+          {source === "ros" ? "live" : "sim"} {live.toFixed(1)}°
+        </span>
       </div>
       <Slider
         aria-label={`${name} commanded position`}
         value={[value]}
-        {...JOINT_LIMITS}
+        {...limits}
         disabled={disabled}
         onValueChange={(v) => onChange(firstValue(v))}
         label={`${value.toFixed(1)}°`}
@@ -31,8 +35,8 @@ export function JointRow({ index, value, disabled, onChange }: IJointRowProps) {
       <NumberStepper
         aria-label={`${name} degrees`}
         value={value}
-        min={JOINT_LIMITS.min}
-        max={JOINT_LIMITS.max}
+        min={limits.min}
+        max={limits.max}
         {...JOINT_STEPS}
         disabled={disabled}
         onValueChange={(v) => onChange(v ?? 0)}
