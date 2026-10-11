@@ -1,7 +1,8 @@
 import type { IRobotState } from "@/features/robot/robot.interface"
 
 export const JOINT_NAMES = ["shoulder_pan", "shoulder_lift", "elbow_flex", "wrist_flex", "wrist_roll", "gripper"]
-export const JOINT_SERVOS = ["SG90", "MG996R", "MG996R", "MG996R", "SG90", "SG90"]
+// 2x MG996R carry the arm and the load; everything from the elbow out is an SG90.
+export const JOINT_SERVOS = ["MG996R", "MG996R", "SG90", "SG90", "SG90", "SG90"]
 
 export const ROBOT_ID = "ava-arm-01"
 export const ROBOT_MODEL = "6-DOF · 6 servos"

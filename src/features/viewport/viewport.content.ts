@@ -3,20 +3,23 @@
 export const ROBOT_URDF_URL = `${import.meta.env.BASE_URL}robot/urdf/ava.urdf`
 export const ROBOT_PACKAGES = { ava_description: `${import.meta.env.BASE_URL}robot` }
 
-// URDF is in metres and the arm is ~0.35 m long; scale it up to fit the MODEL_HEIGHT framing.
-export const ROBOT_SCALE = 2
+// URDF is in metres and the arm stands ~0.58 m tall at the home pose; scale it up to fit
+// the MODEL_HEIGHT framing.
+export const ROBOT_SCALE = 1.7
 
 // Scene height the camera and orbit target are framed around.
 export const MODEL_HEIGHT = 1
 
 // URDF link moved by each joint (same order as JOINT_NAMES); the highlight box wraps that link's own meshes.
+// Each actuated joint's child link in the export is an "axis_*"/"horn_*" stub that the
+// structural part is then fixed to, so the structural link is what reads as moving.
 export const JOINT_PARTS = [
   ["shoulder_link"], // shoulder_pan
   ["upper_arm_link"], // shoulder_lift
-  ["lower_arm_link"], // elbow_flex
+  ["forearm_link"], // elbow_flex
   ["wrist_link"], // wrist_flex
-  ["gripper_link"], // wrist_roll
-  ["moving_jaw_link"], // gripper
+  ["gripper_base_link"], // wrist_roll
+  ["gripper_jaw_link"], // gripper
 ]
 
 // Friendly names for clickable URDF links.
@@ -24,10 +27,10 @@ export const LINK_LABELS: Record<string, string> = {
   base_link: "Base",
   shoulder_link: "Shoulder",
   upper_arm_link: "Upper arm",
-  lower_arm_link: "Forearm",
+  forearm_link: "Forearm",
   wrist_link: "Wrist",
-  gripper_link: "Gripper",
-  moving_jaw_link: "Moving jaw",
+  gripper_base_link: "Gripper",
+  gripper_jaw_link: "Moving jaw",
 }
 
 // Selected part glow.

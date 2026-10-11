@@ -8,7 +8,7 @@
 
 <p align="center"><img src="docs/image.png" alt="AVA dashboard: 3D arm viewport with torque and pose cards, joint controls on the right" width="100%"></p>
 
-<p align="center"><sub><i>Screenshot of the work-in-progress dashboard — UI still evolving.</i></sub></p>
+<p align="center"><sub><i>Screenshot of the work-in-progress dashboard, driving the in-house arm model — UI still evolving.</i></sub></p>
 
 A static Vite + React SPA that talks to ROS 2 over rosbridge (WebSocket), so it
 needs no server of its own.
@@ -148,6 +148,11 @@ URDF and meshes have one source of truth. Inside ava-arm:
 ```bash
 ln -s ../../ros2_ws/src/ava_description public/robot
 ```
+
+> `ava.urdf` and the meshes are git-ignored in ava-arm, so the symlink points at files
+> that are not in a fresh clone. Without them the viewport falls back to its built-in
+> simulation; the rest of the dashboard works. See the
+> [ava-arm README](https://github.com/TomasSirotek/ava-arm#the-arm-model-files-are-supplied-locally).
 
 For live data, run rosbridge (`ros2 launch rosbridge_server rosbridge_websocket_launch.xml`,
 default `ws://localhost:9090`; override with `VITE_ROSBRIDGE_URL`). See the
