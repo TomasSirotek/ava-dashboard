@@ -40,13 +40,15 @@ export const INITIAL_ROBOT_STATE: IRobotState = {
   jointState: {
     name: JOINT_NAMES,
     position: [9.4, 43.8, 66.2, -36.1, 19.2, 4.6],
-    velocity: [0.02, -0.01, 0.04, 0.01, -0.02, 0],
+    velocity: [0, 0, 0, 0, 0, 0],
     effort: null,
   },
   commanded: [10, 45, 65, -35, 20, 5],
   commandId: 0,
   connected: false,
   source: "mock",
-  latency: 18,
-  rate: 49.8,
+  latency: null,
+  rate: null,
+  commandsSent: 0,
+  lastCommandAt: null,
 }

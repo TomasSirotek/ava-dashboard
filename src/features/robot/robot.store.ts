@@ -1,21 +1,23 @@
 import { create } from "zustand"
 import { useMotionStore } from "@/features/motion/motion.store"
-import { INITIAL_ROBOT_STATE, JOINT_NAMES, JOINT_SERVOS, SERVO_STALL_NM } from "@/features/robot/robot.content"
+import { INITIAL_ROBOT_STATE, JOINT_NAMES, JOINT_SERVOS, MOCK_TICK_MS, SERVO_STALL_NM } from "@/features/robot/robot.content"
 import type { IRobotState, IRobotStore, JointReadout } from "@/features/robot/robot.interface"
 
 const RAD_TO_DEG = 180 / Math.PI
 
 export const useRobotStore = create<IRobotStore>()((set) => ({
   ...INITIAL_ROBOT_STATE,
-  // Offline simulation: positions ease toward the commanded pose (faster at higher velocity scale).
-  // It makes up no effort: the torque section stays hidden.
+  // Offline simulation: positions ease toward the commanded pose (faster at higher velocity scale), and
+  // velocity is the position change per tick. No noise and no effort: it shows exactly what it computes.
   tick: () =>
     set((s) => {
       const ease = 0.02 + 0.13 * (useMotionStore.getState().velocity / 100)
+      const position = s.jointState.position.map((v, i) => v + (s.commanded[i] - v) * ease)
       return {
         jointState: {
           ...s.jointState,
-          position: s.jointState.position.map((v, i) => v + (s.commanded[i] - v) * ease + (Math.random() - 0.5) * 0.12),
+          position,
+          velocity: position.map((v, i) => (v - s.jointState.position[i]) / (MOCK_TICK_MS / 1000)),
         },
       }
     }),
@@ -45,6 +47,7 @@ export const useRobotStore = create<IRobotStore>()((set) => ({
   setCommanded: (index, deg) => set((s) => ({ commanded: s.commanded.map((v, i) => (i === index ? deg : v)), commandId: s.commandId + 1 })),
   setCommandedAll: (deg, fromUser = true) => set((s) => ({ commanded: [...deg], commandId: fromUser ? s.commandId + 1 : s.commandId })),
   setLink: (link) => set(link),
+  countCommand: () => set((s) => ({ commandsSent: s.commandsSent + 1, lastCommandAt: Date.now() })),
 }))
 
 // Where the joint angles shown next to the sliders come from:

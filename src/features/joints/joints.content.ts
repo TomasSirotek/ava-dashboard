@@ -14,3 +14,6 @@ export const JOINT_LIMITS = [
 
 // Stepper increments: arrow/button = 1°, Alt = 0.1°, Shift = 10°.
 export const JOINT_STEPS = { step: 1, smallStep: 0.1, largeStep: 10 }
+
+// Effort above this % of stall torque is shown as a warning in the joints table.
+export const EFFORT_WARN = 85

@@ -4,6 +4,8 @@ export type DemoId = "wave" | "pick-place" | "joint-sweep" | "home-park"
 
 /** One keyframe: a full pose in degrees (JOINT_NAMES order), held for `hold` seconds after arriving. */
 export interface IDemoStep {
+  /** Short name shown in the demo timeline, e.g. "Grip". */
+  label: string
   pose: number[]
   hold: number
 }

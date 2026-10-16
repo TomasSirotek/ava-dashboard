@@ -1,14 +1,38 @@
 import { AppProviders } from "@/app/app.providers"
+import { DemoTimeline } from "@/features/demos/demo-timeline"
+import { DetailsPanel } from "@/features/details/details-panel"
 import { Header } from "@/features/header/header"
+import { RobotStatePanel } from "@/features/history/robot-state-panel"
+import { JointsTable } from "@/features/joints/joints-table"
+import { SystemLogs } from "@/features/logs/system-logs"
 import { Navigation } from "@/features/navigation/navigation"
-import { TelemetryPanel } from "@/features/overlay/telemetry-panel"
+import { StatusBar } from "@/features/status/status-bar"
 import { Viewport } from "@/features/viewport/viewport"
 import { AppLayout } from "@/layout/app-layout"
+import { PanelGrid } from "@/layout/panel-grid"
 
 export function App() {
   return (
     <AppProviders>
-      <AppLayout header={<Header />} left={<TelemetryPanel />} main={<Viewport />} aside={<Navigation />} />
+      <AppLayout
+        header={<Header />}
+        toolbar={<StatusBar />}
+        main={
+          <PanelGrid
+            primary={<Viewport />}
+            side={<RobotStatePanel />}
+            left={<JointsTable />}
+            right={<SystemLogs />}
+            footer={<DemoTimeline />}
+          />
+        }
+        aside={
+          <>
+            <Navigation />
+            <DetailsPanel />
+          </>
+        }
+      />
     </AppProviders>
   )
 }

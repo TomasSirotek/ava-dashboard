@@ -53,7 +53,7 @@ export function RobotViewport({ joints = [], jointLabels = [] }: IRobotViewportP
   }
 
   return (
-    <section aria-label="3D viewport" className="relative flex-1 overflow-hidden bg-muted/40 max-lg:min-h-[70svh]">
+    <div className="absolute inset-0 overflow-hidden bg-muted/40">
       {/* Renders only when something changes (camera move, joint highlight, grid toggle), not every frame. */}
       <Canvas
         frameloop="demand"
@@ -106,6 +106,6 @@ export function RobotViewport({ joints = [], jointLabels = [] }: IRobotViewportP
       {selected && <PartLabel ref={partLabel} part={selected} onClose={clearSelection} />}
 
       <ViewportToolbar grid={grid} onResetCamera={resetCamera} onToggleGrid={toggleGrid} />
-    </section>
+    </div>
   )
 }

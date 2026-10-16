@@ -15,7 +15,9 @@ export function useRobotFeed() {
     let retry: number | undefined
     let ros: Ros | undefined
     let disposed = false
-    let lastMsg = 0
+    // Messages received since the last rate update, and when that window started (0 = not live yet).
+    let received = 0
+    let windowStart = 0
 
     const startMock = () => {
       if (mock === undefined) mock = window.setInterval(store.tick, MOCK_TICK_MS)
@@ -42,7 +44,6 @@ export function useRobotFeed() {
         let live = false
         jointStates.subscribe((msg) => {
           if (stale()) return
-          const now = performance.now()
           if (!live) {
             // First real message: stop the simulation and start the sliders from the robot's
             // real pose, so the first drag does not yank the other joints to stale targets.
@@ -51,25 +52,29 @@ export function useRobotFeed() {
             store.setLink({ source: "ros" })
             store.applyJointState(msg)
             store.setCommandedAll(useRobotStore.getState().jointState.position, false)
-            lastMsg = now
+            windowStart = performance.now()
             return
           }
-          // Exponential moving average of the message rate.
-          store.setLink({ rate: useRobotStore.getState().rate * 0.9 + (1000 / (now - lastMsg)) * 0.1 })
-          lastMsg = now
+          received++
           store.applyJointState(msg)
         })
+        // Every probe: the /joint_states rate as messages counted over the window (bursts cannot skew it),
+        // and the rosbridge round trip as the time a rosapi call takes.
         probe = window.setInterval(() => {
-          const sent = performance.now()
-          getTime.callService({}, () => store.setLink({ latency: Math.round(performance.now() - sent) }))
+          const now = performance.now()
+          if (windowStart > 0) store.setLink({ rate: (received * 1000) / (now - windowStart) })
+          received = 0
+          windowStart = live ? now : 0
+          getTime.callService({}, () => store.setLink({ latency: Math.round(performance.now() - now) }))
         }, LATENCY_PROBE_MS)
       })
       conn.on("close", () => {
         if (stale()) return
         attachRos(null)
         window.clearInterval(probe)
-        lastMsg = 0
-        store.setLink({ connected: false, source: "mock" })
+        received = 0
+        windowStart = 0
+        store.setLink({ connected: false, source: "mock", rate: null, latency: null })
         startMock()
         if (!disposed) retry = window.setTimeout(connect, RECONNECT_MS)
       })

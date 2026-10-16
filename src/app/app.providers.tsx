@@ -1,6 +1,7 @@
 import type { IAppProvidersProps } from "@/app/app.interface"
 // Controller mode (disabled): import { useGamepadWatcher } from "@/features/control/use-gamepad-watcher"
 import { useDemoRunner } from "@/features/demos/use-demo-runner"
+import { useJointHistory } from "@/features/history/use-joint-history"
 import { useSystemLog } from "@/features/logs/use-system-log"
 import { useCommandSender } from "@/features/robot/use-command-sender"
 import { useRobotFeed } from "@/features/robot/use-robot-feed"
@@ -13,6 +14,7 @@ export function AppProviders({ children }: IAppProvidersProps) {
   useRobotFeed()
   useCommandSender()
   useDemoRunner()
+  useJointHistory()
   // Controller mode (disabled): no gamepad toasts or log entries while it is off.
   // useGamepadWatcher()
   return <ThemeProvider defaultTheme="dark">{children}</ThemeProvider>

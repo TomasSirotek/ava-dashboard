@@ -1,5 +1,6 @@
 import { type Ros, Topic } from "roslib"
 import { JOINT_NAMES, TRAJECTORY_TOPIC } from "@/features/robot/robot.content"
+import { useRobotStore } from "@/features/robot/robot.store"
 
 const DEG_TO_RAD = Math.PI / 180
 
@@ -37,5 +38,6 @@ export function publishJointTarget(positionsDeg: number[], durationS: number) {
       },
     ],
   })
+  useRobotStore.getState().countCommand()
   return true
 }

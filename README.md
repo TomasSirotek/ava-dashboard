@@ -6,7 +6,7 @@
 
 <p align="center"><a href="https://github.com/TomasSirotek/ava-dashboard/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/TomasSirotek/ava-dashboard/actions/workflows/ci.yml/badge.svg?branch=main"></a>&nbsp;<a href="https://github.com/TomasSirotek/ava-arm"><img alt="part of ava-arm" src="https://img.shields.io/badge/part%20of-ava--arm-000000?style=flat-square"></a>&nbsp;<img alt="built with Vite + React" src="https://img.shields.io/badge/built%20with-Vite%20%2B%20React-e5e5e5?style=flat-square&labelColor=000000">&nbsp;<img alt="ROS 2 Jazzy" src="https://img.shields.io/badge/ROS%202-Jazzy-dc2626?style=flat-square&labelColor=000000">&nbsp;<img alt="runs on Raspberry Pi" src="https://img.shields.io/badge/runs%20on-Raspberry%20Pi-ffffff?style=flat-square&labelColor=000000"></p>
 
-<p align="center"><img src="docs/dashboard-v2.png" alt="AVA dashboard: 3D arm viewport with torque and pose cards, joint controls on the right" width="100%"></p>
+<p align="center"><img src="docs/dashboard-v2.png" alt="AVA dashboard: header, status toolbar, panel grid with the 3D arm view, robot state charts, joints table, logs and demo timeline, controls on the right" width="100%"></p>
 
 <p align="center"><sub><i>Screenshot of the work-in-progress dashboard, driving the in-house arm model — UI still evolving.</i></sub></p>
 
@@ -19,27 +19,30 @@ needs no server of its own.
 
 ## Features
 
-**Header**: system time, this browser session's ID, emergency **Emergency stop / Release**,
-and a light / dark / system theme toggle (dark by default).
+One page, fitted to the window on large screens (panels scroll inside), stacked on small ones.
+Everything shown comes from real data: the built-in simulation, Gazebo or the arm; nothing is
+made up to fill a panel.
 
-**3D viewport**: the robot's real URDF (`public/robot/urdf/ava.urdf`, see
-[Run](#run)) posed from the joint state, with orbit controls, a reset-camera button,
-a grid toggle, a help popover, and an X/Y/Z axis gizmo in the ROS frame (click an
-axis to look along it). Joints picked in the Joints tab are outlined with a
-labelled box that tracks them on screen.
+**Header**: logo, breadcrumb (environment › robot ID), system time, this browser session's ID,
+**Emergency stop / Release**, and a light / dark / system theme toggle (dark by default).
 
-**Telemetry panel** on the left, one column with sections separated by hairlines
-(the same layout as the tabs panel on the right):
+**Toolbar** (chips under the header): overall status, 🟢 All systems nominal (live
+`/joint_states`), 🟠 No joint data (rosbridge up, no robot), 🟠 Simulated · no robot (no rosbridge),
+🔴 Emergency stop; the control mode (click to open the Control tab); and where the joint angles
+come from (`sim`, `live` measured by Gazebo, `cmd` commanded on the real arm, which reports nothing back).
 
-- **Info**: robot ID, model, control mode, then status chips: connection — 🟢 Connected
-  (live `/joint_states`), 🟠 No joint data (rosbridge up, no robot), 🟠 Simulated (no
-  rosbridge) — online badge, and the control mode (click to open the Control tab)
-- **Torque**: effort per joint and servo type, red above 85 %. Only shown while
-  `/joint_states` carries effort (Gazebo); the real servos cannot measure it
-- **System logs**: timestamped events (session start, rosbridge link, live data, e-stop,
-  control mode, gamepad, demos), newest at the bottom
+**Panel grid**: every panel has an icon + title header, an optional stats row and a maximize
+button (Esc restores):
 
-**Sidebar tabs**:
+| Panel | Shows |
+| --- | --- |
+| 3D view | the robot's real URDF (`public/robot/urdf/ava.urdf`, see [Run](#run)) posed from the joint state: orbit controls, reset camera, grid toggle, help popover, X/Y/Z gizmo in the ROS frame (click an axis to look along it). Highlighted joints get a labelled box; clicking an arm part shows its lengths |
+| Robot state | joint position and velocity of all six joints over the last 30 s (4 Hz); an effort chart (% of stall) only while `/joint_states` carries effort (Gazebo) |
+| Joints | table per joint: servo, angle, target, URDF range, effort ("—" unless measured, red above 85 %). Click a row to highlight the joint |
+| Logs | timestamped events (session, rosbridge link, live data, e-stop, control mode, demos) with level and source, a search box and a level filter |
+| Demo timeline | the running demo's steps as one track, each as wide as its time; current step in the accent colour |
+
+**Right column**: the controls tabs on top, details and streams below.
 
 | Tab | What it does |
 | --- | --- |
@@ -48,6 +51,10 @@ labelled box that tracks them on screen.
 | Motion | Velocity scale and trajectory duration (set how fast slider moves and demos run); acceleration and Simulation/Hardware are not applied yet |
 | Parts | The build's hardware, filterable by Servos / Control / Power: photo, role, PCA9685 channel and a folding datasheet. No live readings: the build has no voltage, current or temperature sensors |
 | Link | rosbridge WebSocket URL and Connect |
+
+- **Details**: robot ID, model, servo count per model, when the page was loaded.
+- **Streams**: rosbridge (round-trip ms), `/joint_states` (measured Hz) and the trajectory
+  command topic (commands sent, last one); "—" while there is nothing to measure.
 
 The joint sliders lock while the e-stop is engaged or in Automatic mode. Every action confirms itself with a
 toast (sonner, panel-coloured; the icon shows success, info, warning or error).
@@ -61,15 +68,17 @@ toast (sonner, panel-coloured; the icon shows success, info, warning or error).
   subscribe to single values with selectors, so a telemetry tick only re-renders
   the numbers that changed. Purely local UI state stays in `useState`.
 - **Background feeds as hooks.** `app.providers.tsx` runs the hooks that fill the
-  stores (the rosbridge feed, the command sender, the demo runner, the gamepad
-  watcher) and the theme context.
+  stores (the rosbridge feed, the command sender, the demo runner, the joint
+  history sampler for the charts) and the theme context.
 - **One command path.** Sliders and demos set `commanded` in the robot store.
   With rosbridge it is sent to `/joint_trajectory_controller/joint_trajectory`;
   without it the built-in simulation eases toward it (`robot.store.ts`).
-- **Layout separate from content.** `layout/app-layout.tsx` is only the page
-  shell (header / viewport / sidebar slots and the toaster). `app/app.tsx` fills
-  the slots.
-- **Lazy 3D.** three.js loads as its own chunk, so the controls render first.
+- **Layout separate from content.** `layout/app-layout.tsx` is the page shell
+  (header, toolbar, main, right column, toaster) and `layout/panel-grid.tsx` the
+  grid of panels. `app/app.tsx` fills the slots; every panel uses the shared
+  `components/shared/panel.tsx`.
+- **Lazy 3D and charts.** three.js and Recharts load as their own chunks, so the
+  controls render first.
 - **React 19 idioms**: `<Context value>` and `use()`, ref as a prop (no
   `forwardRef`). The one class component is the model's error boundary, which
   React still has no hook for.
@@ -83,23 +92,25 @@ src/
   app/                      app root and providers
   layout/                   page shell
   components/
-    ui/                     shadcn/ui components (generated, not hand-edited)
-    shared/                 Heading, Field, Setting, shared styles
-  lib/utils.ts              cn(), firstValue()
+    ui/                     shadcn/ui components (generated, not hand-edited), incl. chart (Recharts)
+    shared/                 Panel, Heading, Field, Setting, NumberStepper, shared styles
+  lib/utils.ts              cn(), firstValue(), clockTime
   features/
-    header/                 header bar: status, link stats, e-stop, GitHub link
-    navigation/             sidebar tabs
-    joints/                 joint sliders, highlight pills
+    header/                 header bar: logo, breadcrumb, clock and session ID, e-stop
+    status/                 toolbar: system status, control mode, angle source
+    navigation/             controls tabs of the right column
+    details/                details and streams under the tabs
+    joints/                 joint sliders, highlight pills, joints table
+    history/                joint history sampler and the robot state charts
     target/                 Cartesian target + IK
-    control/                control modes, voice settings, gamepad
+    control/                control modes, voice settings, gamepad (disabled)
     motion/                 sim / hardware target, limits
     parts/                  hardware parts catalogue
     connection/             rosbridge URL
-    overlay/                left telemetry panel (status, torque when measured)
-    logs/                   system log store, event feed and log section
+    logs/                   system log store, event feed and logs panel
     viewport/               three.js canvas, model, joint tracker, toolbar
     robot/                  robot store, rosbridge feed, command sender
-    demos/                  automatic-mode demos and their runner
+    demos/                  automatic-mode demos, their runner and the timeline
     theme/                  theme provider and toggle
 ```
 

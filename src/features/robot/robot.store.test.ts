@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest"
-import { INITIAL_ROBOT_STATE, JOINT_NAMES } from "@/features/robot/robot.content"
+import { INITIAL_ROBOT_STATE, JOINT_NAMES, MOCK_TICK_MS } from "@/features/robot/robot.content"
 import { selectReadout, useRobotStore } from "@/features/robot/robot.store"
 
 // /joint_states arrives in ROS units and in whatever joint order the publisher uses.
@@ -39,6 +39,21 @@ describe("applyJointState", () => {
     useRobotStore.getState().applyJointState(msg(JOINT_NAMES, [0, 0, 0, 0, 0, 0], [0.5, 0.5, 0.5, 0.1, 0.1, 0.1]))
     useRobotStore.getState().applyJointState(msg(JOINT_NAMES, [0, 0, 0, 0, 0, 0]))
     expect(state().effort).toBeNull()
+  })
+})
+
+// The velocity chart plots this in simulation, so it must match how far the joints actually moved.
+describe("tick (built-in simulation)", () => {
+  it("reports velocity as the position change per tick, and joints at their target as still", () => {
+    useRobotStore.setState({ commanded: [...INITIAL_ROBOT_STATE.jointState.position] })
+    useRobotStore.setState((s) => ({ commanded: s.commanded.map((v, i) => (i === 0 ? v + 10 : v)) }))
+    const before = state().position
+    useRobotStore.getState().tick()
+    const { position, velocity } = state()
+    expect(position[0]).toBeGreaterThan(before[0])
+    expect(velocity[0]).toBeCloseTo((position[0] - before[0]) / (MOCK_TICK_MS / 1000), 9)
+    expect(velocity.slice(1)).toEqual([0, 0, 0, 0, 0])
+    expect(position.slice(1)).toEqual(before.slice(1))
   })
 })
 

@@ -14,19 +14,28 @@ export function useSystemLog() {
     const unsubscribers = [
       useRobotStore.subscribe((s, prev) => {
         if (s.connected !== prev.connected)
-          add(s.connected ? "info" : "warn", s.connected ? `rosbridge connected (${ROSBRIDGE_URL})` : "rosbridge unreachable, simulating")
+          add(
+            s.connected ? "info" : "warn",
+            "link",
+            s.connected ? `rosbridge connected (${ROSBRIDGE_URL})` : "rosbridge unreachable, simulating",
+          )
         if (s.source !== prev.source)
-          add(s.source === "ros" ? "success" : "warn", s.source === "ros" ? "Live /joint_states" : "No /joint_states, simulated data")
+          add(
+            s.source === "ros" ? "success" : "warn",
+            "link",
+            s.source === "ros" ? "Live /joint_states" : "No /joint_states, simulated data",
+          )
       }),
       useControlStore.subscribe((s, prev) => {
-        if (s.estop !== prev.estop) add(s.estop ? "error" : "success", s.estop ? "Emergency stop engaged" : "E-stop released")
-        if (s.mode !== prev.mode) add("info", `Control mode: ${CONTROL_MODES[s.mode].label}`)
-        if (s.pad !== prev.pad) add(s.pad ? "success" : "warn", s.pad ? `Controller connected: ${s.pad}` : "Controller disconnected")
+        if (s.estop !== prev.estop) add(s.estop ? "error" : "success", "control", s.estop ? "Emergency stop engaged" : "E-stop released")
+        if (s.mode !== prev.mode) add("info", "control", `Control mode: ${CONTROL_MODES[s.mode].label}`)
+        if (s.pad !== prev.pad)
+          add(s.pad ? "success" : "warn", "control", s.pad ? `Controller connected: ${s.pad}` : "Controller disconnected")
       }),
       useDemoStore.subscribe((s, prev) => {
         if (s.running === prev.running) return
-        if (s.running) add("info", `Demo started: ${DEMOS[s.running].label}`)
-        else if (prev.running) add("info", `Demo stopped: ${DEMOS[prev.running].label}`)
+        if (s.running) add("info", "demo", `Demo started: ${DEMOS[s.running].label}`)
+        else if (prev.running) add("info", "demo", `Demo stopped: ${DEMOS[prev.running].label}`)
       }),
     ]
     return () => {
