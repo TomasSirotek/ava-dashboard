@@ -1,6 +1,8 @@
 import type { LucideIcon } from "lucide-react"
 
-export type ControlMode = "manual" | "auto" | "controller"
+// Controller (gamepad) mode is disabled for now; to bring it back add "controller" here and
+// un-comment the lines marked "Controller mode" in the control feature and app.providers.tsx.
+export type ControlMode = "manual" | "auto"
 
 export interface IControlModeItem {
   value: ControlMode

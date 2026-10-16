@@ -1,44 +1,44 @@
 import { create } from "zustand"
 import { useMotionStore } from "@/features/motion/motion.store"
 import { INITIAL_ROBOT_STATE, JOINT_NAMES, JOINT_SERVOS, SERVO_STALL_NM } from "@/features/robot/robot.content"
-import type { IRobotStore } from "@/features/robot/robot.interface"
+import type { IRobotState, IRobotStore, JointReadout } from "@/features/robot/robot.interface"
 
 const RAD_TO_DEG = 180 / Math.PI
 
 export const useRobotStore = create<IRobotStore>()((set) => ({
   ...INITIAL_ROBOT_STATE,
-  // Offline simulation: positions ease toward the commanded pose (faster at higher
-  // velocity scale), effort drifts.
+  // Offline simulation: positions ease toward the commanded pose (faster at higher velocity scale).
+  // It makes up no effort: the torque section stays hidden.
   tick: () =>
     set((s) => {
       const ease = 0.02 + 0.13 * (useMotionStore.getState().velocity / 100)
       return {
-        latency: 16 + Math.round(Math.random() * 7),
-        rate: 49 + Math.random() * 2,
         jointState: {
           ...s.jointState,
           position: s.jointState.position.map((v, i) => v + (s.commanded[i] - v) * ease + (Math.random() - 0.5) * 0.12),
-          effort: s.jointState.effort.map((v, i) => Math.max(4, Math.min(100, v + Math.sin(Date.now() / 900 + i) * 0.9))),
         },
       }
     }),
   // Live /joint_states: reorder by name into JOINT_NAMES, convert to the UI's units
-  // (degrees, effort as % of stall). Joints missing from the message keep their last value;
-  // a message without effort (e.g. Gazebo, position-only) shows 0%.
+  // (degrees, effort as % of stall). Joints missing from the message keep their last value.
+  // A message without effort (the real arm) clears it, so no torque is shown.
   applyJointState: (msg) =>
     set((s) => {
       const index = new Map(msg.name.map((n, i) => [n, i]))
-      const pick = (arr: number[], prev: number[], map: (v: number, i: number) => number) =>
+      const pick = (arr: number[], prev: number[] | null, map: (v: number, i: number) => number) =>
         JOINT_NAMES.map((n, i) => {
           const k = index.get(n)
-          return k === undefined ? prev[i] : map(arr[k] ?? 0, i)
+          return k === undefined ? (prev?.[i] ?? 0) : map(arr[k] ?? 0, i)
         })
       return {
         jointState: {
           name: JOINT_NAMES,
           position: pick(msg.position, s.jointState.position, (v) => v * RAD_TO_DEG),
           velocity: pick(msg.velocity, s.jointState.velocity, (v) => v * RAD_TO_DEG),
-          effort: pick(msg.effort, s.jointState.effort, (v, i) => Math.min(100, (Math.abs(v) / SERVO_STALL_NM[JOINT_SERVOS[i]]) * 100)),
+          effort:
+            msg.effort.length === 0
+              ? null
+              : pick(msg.effort, s.jointState.effort, (v, i) => Math.min(100, (Math.abs(v) / SERVO_STALL_NM[JOINT_SERVOS[i]]) * 100)),
         },
       }
     }),
@@ -46,3 +46,10 @@ export const useRobotStore = create<IRobotStore>()((set) => ({
   setCommandedAll: (deg, fromUser = true) => set((s) => ({ commanded: [...deg], commandId: fromUser ? s.commandId + 1 : s.commandId })),
   setLink: (link) => set(link),
 }))
+
+// Where the joint angles shown next to the sliders come from:
+// - sim: the built-in simulation (no rosbridge or no /joint_states)
+// - live: measured, by Gazebo or ros2_control's mock hardware; both also publish effort
+// - cmd: the real arm. Its hobby servos report nothing back, so ava_hardware publishes the commanded angle
+//   (clamped and rate-limited) and no effort. A missing effort is how the real arm is told apart.
+export const selectReadout = (s: IRobotState): JointReadout => (s.source === "mock" ? "sim" : s.jointState.effort ? "live" : "cmd")

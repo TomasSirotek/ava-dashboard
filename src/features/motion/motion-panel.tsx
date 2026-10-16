@@ -18,7 +18,8 @@ export function MotionPanel() {
     else toast.info("Target: Simulation")
   }
   return (
-    <div className="flex flex-col gap-8">
+    // Two sections (target, limits); the right panel separates them with a hairline.
+    <>
       <div>
         <Heading>Target</Heading>
         <Tabs value={target} onValueChange={(v) => changeTarget(v as MotionTarget)}>
@@ -30,31 +31,33 @@ export function MotionPanel() {
             ))}
           </TabsList>
         </Tabs>
-        {target === "real" && <p className="mt-2 text-sm text-destructive">Commands go to real hardware.</p>}
+        {target === "real" && <p className="mt-2 text-xs text-destructive">Commands go to real hardware.</p>}
       </div>
-      <div className="flex flex-col gap-6">
+      <div>
         <Heading>Limits</Heading>
-        <Field label="Velocity scale">
-          <Slider value={[velocity]} max={100} onValueChange={(v) => update({ velocity: firstValue(v) })} label={`${velocity}%`} />
-        </Field>
-        <Field label="Acceleration scale">
-          <Slider value={[accel]} max={100} onValueChange={(v) => update({ accel: firstValue(v) })} label={`${accel}%`} />
-        </Field>
-        <p className="-mt-4 text-xs text-muted-foreground">Used by planned (MoveIt) moves; slider moves ignore it.</p>
-        <Field label="Trajectory duration (s)">
-          <Input
-            className="font-mono"
-            type="number"
-            min={0.1}
-            step={0.1}
-            value={duration}
-            onChange={(e) => update({ duration: Math.max(0.1, Number(e.target.value) || 0.1) })}
-          />
-        </Field>
-        <p className="-mt-4 text-xs text-muted-foreground">
-          A slider move takes {moveTime.toFixed(1)} s (duration at 100% velocity, stretched by the velocity scale).
-        </p>
+        <div className="flex flex-col gap-4">
+          <Field label="Velocity scale" value={`${velocity}%`}>
+            <Slider value={[velocity]} max={100} onValueChange={(v) => update({ velocity: firstValue(v) })} />
+          </Field>
+          <Field label="Acceleration scale" value={`${accel}%`}>
+            <Slider value={[accel]} max={100} onValueChange={(v) => update({ accel: firstValue(v) })} />
+          </Field>
+          <p className="-mt-2 text-xs text-muted-foreground">Used by planned (MoveIt) moves; slider moves ignore it.</p>
+          <Field label="Trajectory duration (s)">
+            <Input
+              className="tabular-nums"
+              type="number"
+              min={0.1}
+              step={0.1}
+              value={duration}
+              onChange={(e) => update({ duration: Math.max(0.1, Number(e.target.value) || 0.1) })}
+            />
+          </Field>
+          <p className="-mt-2 text-xs text-muted-foreground">
+            A slider move takes {moveTime.toFixed(1)} s (duration at 100% velocity, stretched by the velocity scale).
+          </p>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

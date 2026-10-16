@@ -15,7 +15,7 @@ import type { IRobotViewportProps } from "@/features/viewport/viewport.interface
 import { usePartSelectionStore } from "@/features/viewport/viewport.store"
 import { ViewportToolbar } from "@/features/viewport/viewport-toolbar"
 
-export function RobotViewport({ children, joints = [], jointLabels = [] }: IRobotViewportProps) {
+export function RobotViewport({ joints = [], jointLabels = [] }: IRobotViewportProps) {
   const model = useRef<Object3D>(null)
   const frames = useRef<(HTMLDivElement | null)[]>([])
   const controls = useRef<React.ComponentRef<typeof OrbitControls>>(null)
@@ -102,8 +102,6 @@ export function RobotViewport({ children, joints = [], jointLabels = [] }: IRobo
           {failed ? "Could not load robot/urdf/ava.urdf" : "Loading model…"}
         </p>
       )}
-
-      {children}
 
       {selected && <PartLabel ref={partLabel} part={selected} onClose={clearSelection} />}
 

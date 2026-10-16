@@ -1,6 +1,6 @@
 import { Play, Square } from "lucide-react"
 import { Heading } from "@/components/shared/heading"
-import { whiteButton } from "@/components/shared/shared.styles"
+import { secondaryButton } from "@/components/shared/shared.styles"
 import { Button } from "@/components/ui/button"
 import { useControlStore } from "@/features/control/control.store"
 import { DEMOS } from "@/features/demos/demos.content"
@@ -22,7 +22,7 @@ export function DemoPanel() {
           return (
             <div
               key={id}
-              className={cn("flex items-center gap-3 rounded-lg border px-3 py-2.5", active && "border-orange-500/50 bg-orange-500/5")}
+              className={cn("flex items-center gap-3 rounded-lg border px-3 py-2.5", active && "border-primary/50 bg-primary/5")}
             >
               <span className="grid size-8 shrink-0 place-items-center rounded-md bg-muted">
                 <Icon className="size-4" />
@@ -34,11 +34,11 @@ export function DemoPanel() {
                 </p>
               </div>
               {active ? (
-                <Button size="sm" variant="outline" className={whiteButton} onClick={stop}>
+                <Button size="sm" variant="outline" className={secondaryButton} onClick={stop}>
                   <Square /> Stop
                 </Button>
               ) : (
-                <Button size="sm" variant="outline" className={whiteButton} disabled={estop} onClick={() => start(id)}>
+                <Button size="sm" variant="outline" className={secondaryButton} disabled={estop} onClick={() => start(id)}>
                   <Play /> Run
                 </Button>
               )}

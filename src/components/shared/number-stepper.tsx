@@ -19,7 +19,7 @@ export function NumberStepper({ className, fractionDigits = 1, ...props }: INumb
           className,
         )}
       >
-        <NumberField.Input className="w-full min-w-0 bg-transparent px-2 text-right font-mono text-xs tabular-nums outline-none" />
+        <NumberField.Input className="w-full min-w-0 bg-transparent px-2 text-right text-xs tabular-nums outline-none" />
         <div className="flex w-5 shrink-0 flex-col border-l border-input">
           <NumberField.Increment aria-label="Increase" className={stepButton}>
             <ChevronUp className="size-3" />

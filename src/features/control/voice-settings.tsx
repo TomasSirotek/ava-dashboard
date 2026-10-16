@@ -14,7 +14,7 @@ export function VoiceSettings() {
   const [speaker, setSpeaker] = useState(true)
   const [sensitivity, setSensitivity] = useState(60)
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col items-center gap-2 rounded-lg border bg-muted/40 px-4 py-6 text-center">
         <span className="grid size-12 place-items-center rounded-full bg-background shadow-xs ring-1 ring-foreground/10">
           <Mic className="size-5" />
@@ -44,8 +44,8 @@ export function VoiceSettings() {
       <Field label="Wake word">
         <Input defaultValue="Hey AVA" />
       </Field>
-      <Field label="Mic sensitivity">
-        <Slider value={[sensitivity]} max={100} onValueChange={(v) => setSensitivity(firstValue(v))} label={`${sensitivity}%`} />
+      <Field label="Mic sensitivity" value={`${sensitivity}%`}>
+        <Slider value={[sensitivity]} max={100} onValueChange={(v) => setSensitivity(firstValue(v))} />
       </Field>
     </div>
   )

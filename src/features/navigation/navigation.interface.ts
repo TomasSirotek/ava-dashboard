@@ -4,8 +4,6 @@ export interface INavItem {
   value: string
   label: string
   content: ReactNode
-  /** Extra classes for the tab panel. */
-  className?: string
 }
 
 export interface INavigationStore {

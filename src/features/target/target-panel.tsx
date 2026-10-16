@@ -17,11 +17,11 @@ export function TargetPanel() {
       <div className="grid grid-cols-3 gap-2">
         {TARGET_AXES.map((axis, i) => (
           <Field key={axis} label={axis}>
-            <Input className="font-mono" value={target[i]} onChange={(e) => setAxis(i, Number(e.target.value) || 0)} />
+            <Input className="tabular-nums" value={target[i]} onChange={(e) => setAxis(i, Number(e.target.value) || 0)} />
           </Field>
         ))}
       </div>
-      <Button className="mt-4 w-full" onClick={solve}>
+      <Button className="mt-4 w-full bg-white text-black text-xs" onClick={solve}>
         Solve IK
       </Button>
     </div>

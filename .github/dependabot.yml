@@ -1,0 +1,31 @@
+# Dependabot version updates: at most one pull request per ecosystem per week, all updates grouped.
+# CI runs on each of these PRs, so a red PR means the update breaks something.
+version: 2
+updates:
+  # npm ecosystem = package.json + pnpm-lock.yaml.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # Skip releases younger than a week: most hijacked or broken versions are pulled within days.
+    cooldown:
+      default-days: 7
+    groups:
+      dependencies:
+        patterns: ["*"]
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "chore(deps)"
+
+  # The actions in .github/workflows, pinned to commit SHAs: Dependabot updates SHA and version comment.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: "chore(ci)"

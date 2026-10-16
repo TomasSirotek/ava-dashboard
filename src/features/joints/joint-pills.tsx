@@ -1,30 +1,26 @@
-import { Check } from "lucide-react"
 import { JOINT_PILL_LABELS } from "@/features/joints/joints.content"
 import { useJointHighlightStore } from "@/features/joints/joints.store"
-import { JOINT_NAMES } from "@/features/robot/robot.content"
+import { JOINT_LABELS, JOINT_NAMES } from "@/features/robot/robot.content"
 
-// Segmented multi-select: joined pills, selected ones get a tint and a check.
+// Segmented multi-select, same look as the segmented tabs: selected pills get the accent tint.
+// No check icon, so the labels never shift when a pill is toggled.
 export function JointPills() {
   const highlighted = useJointHighlightStore((s) => s.highlighted)
   const toggle = useJointHighlightStore((s) => s.toggle)
   return (
-    <div role="group" aria-label="Highlight joints" className="mb-5 flex divide-x overflow-hidden rounded-full border shadow-xs">
-      {JOINT_NAMES.map((name, i) => {
-        const on = highlighted.includes(i)
-        return (
-          <button
-            key={name}
-            type="button"
-            title={`J${i + 1} ${name}`}
-            aria-pressed={on}
-            onClick={() => toggle(i)}
-            className="flex min-w-0 flex-1 items-center justify-center gap-1 py-1.5 text-xs font-medium transition-colors hover:bg-muted aria-pressed:bg-orange-500/15 aria-pressed:text-orange-700 aria-pressed:hover:bg-orange-500/20 dark:aria-pressed:text-orange-300"
-          >
-            {on && <Check className="size-3 shrink-0" />}
-            {JOINT_PILL_LABELS[i]}
-          </button>
-        )
-      })}
+    <div role="group" aria-label="Highlight joints" className="mb-4 flex h-8 divide-x overflow-hidden rounded-sm border">
+      {JOINT_NAMES.map((name, i) => (
+        <button
+          key={name}
+          type="button"
+          title={`J${i + 1} ${JOINT_LABELS[i]}`}
+          aria-pressed={highlighted.includes(i)}
+          onClick={() => toggle(i)}
+          className="flex min-w-0 flex-1 items-center justify-center px-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground aria-pressed:bg-primary/15 aria-pressed:text-primary aria-pressed:hover:bg-primary/20"
+        >
+          {JOINT_PILL_LABELS[i]}
+        </button>
+      ))}
     </div>
   )
 }

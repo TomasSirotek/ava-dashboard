@@ -8,12 +8,12 @@ export function PartLabel({ ref, part, onClose }: IPartLabelProps) {
     <div
       ref={ref}
       hidden
-      className="absolute top-0 left-0 flex items-center gap-2 rounded-lg border border-orange-500/40 bg-background/95 py-1 pr-1 pl-2.5 text-sm shadow-md"
+      className="absolute top-0 left-0 flex items-center gap-2 rounded-sm border border-primary/40 bg-background/95 py-1 pr-1 pl-2.5 text-sm shadow-md"
     >
-      <Ruler className="size-4 shrink-0 text-orange-500" />
+      <Ruler className="size-4 shrink-0 text-primary" />
       <div className="flex flex-col leading-tight">
         <span className="font-medium">{part.label}</span>
-        <span className="font-mono text-xs whitespace-nowrap text-muted-foreground tabular-nums">
+        <span className="text-xs whitespace-nowrap text-muted-foreground tabular-nums">
           part {part.partMm} mm{part.jointMm !== null && ` · joint to joint ${part.jointMm} mm`}
         </span>
       </div>

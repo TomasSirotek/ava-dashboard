@@ -1,0 +1,165 @@
+# Dashboard CI: dependency checks, then lint, typecheck, unit tests and build.
+# Every run writes a report to its Summary page (Actions tab → the run); the README badge shows the
+# result of the latest run on main.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  # Weekly, so advisories published after the last push still turn the badge red.
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run still going for the older one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependencies:
+    name: Dependencies
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Actions are pinned to a full commit SHA (a tag can be moved to other code); the comment is the
+      # release it points at. Dependabot (.github/dependabot.yml) bumps SHA and comment together.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # pnpm version comes from "packageManager" in package.json.
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # Fails when package.json and pnpm-lock.yaml disagree.
+      - name: Install (lockfile must be up to date)
+        run: pnpm install --frozen-lockfile
+
+      # Fails on high or critical advisories that have a fixed version to upgrade to. Advisories with no fix
+      # yet only show up in the report below. (pnpm's --ignore-unfixable is not used: it writes the ignored
+      # IDs into pnpm-workspace.yaml.) An unreadable audit result fails the step.
+      - name: Audit
+        run: |
+          pnpm audit --json > "$RUNNER_TEMP/audit.json" || true
+          fixable=$(jq -r '[.advisories[]
+            | select(.severity == "high" or .severity == "critical")
+            | select(.patched_versions != null and .patched_versions != "<0.0.0")
+            | "\(.severity): \(.module_name) \(.vulnerable_versions) -> \(.patched_versions) (\(.github_advisory_id))"]
+            | .[]' "$RUNNER_TEMP/audit.json")
+          if [ -n "$fixable" ]; then
+            echo "High or critical advisories with a fix available:"
+            echo "$fixable"
+            exit 1
+          fi
+          echo "No fixable high or critical advisories."
+
+      - name: Dependency report
+        if: ${{ !cancelled() }}
+        run: |
+          {
+            echo "## Dependency report"
+            echo
+            echo "### Security advisories (all severities)"
+            echo
+            if audit=$(pnpm audit 2>&1); then
+              echo "No known vulnerabilities."
+            else
+              echo '```text'
+              echo "$audit"
+              echo '```'
+            fi
+            echo
+            echo "### Outdated packages"
+            echo
+            outdated=$(pnpm outdated 2>&1 || true)
+            if [ -z "$outdated" ]; then
+              echo "All dependencies are on their latest version."
+            else
+              echo '```text'
+              echo "$outdated"
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Pull requests only: blocks a PR that adds a dependency with a known high or critical advisory.
+      - name: Review dependency changes
+        if: github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+        with:
+          fail-on-severity: high
+
+  build:
+    name: Lint, typecheck, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        id: install
+        run: pnpm install --frozen-lockfile
+
+      # The checks below run even if an earlier one failed, so one run reports every problem.
+      - name: Lint and format (Biome)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm exec biome ci .
+
+      - name: Typecheck
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm typecheck
+
+      # github-actions: failures as annotations on the code plus a test report in the run summary.
+      # junit: the same results as a file. --coverage writes coverage/ (text, json-summary, html; see
+      # vite.config.ts). The ROS contract tests skip themselves here: public/robot links into ava-arm,
+      # which is not part of this checkout.
+      - name: Unit tests with coverage
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: >-
+          pnpm test --coverage --reporter=default --reporter=github-actions --reporter=junit
+          --outputFile.junit=reports/junit.xml
+
+      - name: Coverage report
+        if: ${{ !cancelled() && hashFiles('coverage/coverage-summary.json') != '' }}
+        run: |
+          {
+            echo "## Coverage"
+            echo
+            echo "| | Covered | Total | % |"
+            echo "| --- | ---: | ---: | ---: |"
+            jq -r '.total | to_entries[] | select(.key | IN("lines", "statements", "functions", "branches"))
+              | "| \(.key) | \(.value.covered) | \(.value.total) | \(.value.pct) |"' coverage/coverage-summary.json
+            echo
+            echo "Per-file details: the \`test-report\` artifact, \`coverage/index.html\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload test report
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-report
+          path: |
+            reports/junit.xml
+            coverage/
+          retention-days: 14
+
+      - name: Build
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: pnpm build

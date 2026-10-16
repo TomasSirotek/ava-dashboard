@@ -4,7 +4,6 @@ import type { Object3D } from "three"
 export type ModelRef = RefObject<Object3D | null>
 
 export interface IRobotViewportProps {
-  children?: ReactNode
   /** Joint indices to outline. */
   joints?: number[]
   jointLabels?: string[]

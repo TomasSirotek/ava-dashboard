@@ -4,9 +4,9 @@
 
 <p align="center"><b>web dashboard for a 6-DOF desk arm · live 3D view · ROS 2 over rosbridge</b></p>
 
-<p align="center"><a href="https://github.com/TomasSirotek/ava-arm"><img alt="part of ava-arm" src="https://img.shields.io/badge/part%20of-ava--arm-000000?style=flat-square"></a>&nbsp;<img alt="built with Vite + React" src="https://img.shields.io/badge/built%20with-Vite%20%2B%20React-e5e5e5?style=flat-square&labelColor=000000">&nbsp;<img alt="ROS 2 Jazzy" src="https://img.shields.io/badge/ROS%202-Jazzy-dc2626?style=flat-square&labelColor=000000">&nbsp;<img alt="runs on Raspberry Pi" src="https://img.shields.io/badge/runs%20on-Raspberry%20Pi-ffffff?style=flat-square&labelColor=000000"></p>
+<p align="center"><a href="https://github.com/TomasSirotek/ava-dashboard/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/TomasSirotek/ava-dashboard/actions/workflows/ci.yml/badge.svg?branch=main"></a>&nbsp;<a href="https://github.com/TomasSirotek/ava-arm"><img alt="part of ava-arm" src="https://img.shields.io/badge/part%20of-ava--arm-000000?style=flat-square"></a>&nbsp;<img alt="built with Vite + React" src="https://img.shields.io/badge/built%20with-Vite%20%2B%20React-e5e5e5?style=flat-square&labelColor=000000">&nbsp;<img alt="ROS 2 Jazzy" src="https://img.shields.io/badge/ROS%202-Jazzy-dc2626?style=flat-square&labelColor=000000">&nbsp;<img alt="runs on Raspberry Pi" src="https://img.shields.io/badge/runs%20on-Raspberry%20Pi-ffffff?style=flat-square&labelColor=000000"></p>
 
-<p align="center"><img src="docs/image.png" alt="AVA dashboard: 3D arm viewport with torque and pose cards, joint controls on the right" width="100%"></p>
+<p align="center"><img src="docs/dashboard-v2.png" alt="AVA dashboard: 3D arm viewport with torque and pose cards, joint controls on the right" width="100%"></p>
 
 <p align="center"><sub><i>Screenshot of the work-in-progress dashboard, driving the in-house arm model — UI still evolving.</i></sub></p>
 
@@ -15,14 +15,12 @@ needs no server of its own.
 
 > Status: shows and drives the robot live over rosbridge (Gazebo today, hardware
 > later). Without ROS it falls back to a built-in simulation. Still placeholders:
-> Current pose card, Solve IK, camera, voice. See [CHANGELOG.md](CHANGELOG.md).
+> Solve IK, voice. See [CHANGELOG.md](CHANGELOG.md).
 
 ## Features
 
-**Header**: connection status — 🟢 Connected (live `/joint_states`), 🟠 No joint data
-(rosbridge up, no robot), 🟠 Simulated (no rosbridge) — current control mode,
-link rate and latency, emergency **Stop / Release**, and a light / dark / system
-theme toggle.
+**Header**: system time, this browser session's ID, emergency **Emergency stop / Release**,
+and a light / dark / system theme toggle (dark by default).
 
 **3D viewport**: the robot's real URDF (`public/robot/urdf/ava.urdf`, see
 [Run](#run)) posed from the joint state, with orbit controls, a reset-camera button,
@@ -30,26 +28,29 @@ a grid toggle, a help popover, and an X/Y/Z axis gizmo in the ROS frame (click a
 axis to look along it). Joints picked in the Joints tab are outlined with a
 labelled box that tracks them on screen.
 
-**Floating cards** over the viewport, sized to always fit its height:
+**Telemetry panel** on the left, one column with sections separated by hairlines
+(the same layout as the tabs panel on the right):
 
-- **Info**: robot ID, model, control mode, link stats, online / stopped badge
-- **Torque**: effort per joint and servo type, red above 85 %
-- **Current pose**: X / Y / Z and roll / pitch / yaw
-- **Camera**: Kinect preview slot; click to expand, <kbd>Esc</kbd> to collapse
+- **Info**: robot ID, model, control mode, then status chips: connection — 🟢 Connected
+  (live `/joint_states`), 🟠 No joint data (rosbridge up, no robot), 🟠 Simulated (no
+  rosbridge) — online badge, and the control mode (click to open the Control tab)
+- **Torque**: effort per joint and servo type, red above 85 %. Only shown while
+  `/joint_states` carries effort (Gazebo); the real servos cannot measure it
+- **System logs**: timestamped events (session start, rosbridge link, live data, e-stop,
+  control mode, gamepad, demos), newest at the bottom
 
 **Sidebar tabs**:
 
 | Tab | What it does |
 | --- | --- |
 | Joints | Slider and number box per joint (ranges = URDF limits), Home, joint highlight pills, Cartesian target + Solve IK (placeholder) |
-| Control | Manual / Automatic (demos: Wave, Pick & place, Joint sweep, Home & park; voice mocked) / Controller (browser Gamepad API) |
+| Control | Manual / Automatic (demos: Wave, Pick & place, Joint sweep, Home & park; voice mocked). Controller (gamepad) mode is disabled for now: its code is kept, commented out, marked `Controller mode (disabled)` |
 | Motion | Velocity scale and trajectory duration (set how fast slider moves and demos run); acceleration and Simulation/Hardware are not applied yet |
-| Parts | Hardware list filterable by Servos / Controller / Sensors: photo, live V / A / °C, load and a folding datasheet |
+| Parts | The build's hardware, filterable by Servos / Control / Power: photo, role, PCA9685 channel and a folding datasheet. No live readings: the build has no voltage, current or temperature sensors |
 | Link | rosbridge WebSocket URL and Connect |
 
-The joint sliders lock while the e-stop is engaged, in Automatic mode, or in
-Controller mode once a pad is connected. Every action confirms itself with a
-toast (sonner, colour-coded: success, info, warning, error).
+The joint sliders lock while the e-stop is engaged or in Automatic mode. Every action confirms itself with a
+toast (sonner, panel-coloured; the icon shows success, info, warning or error).
 
 ## Architecture
 
@@ -78,7 +79,7 @@ toast (sonner, colour-coded: success, info, warning, error).
 ```
 src/
   main.tsx                  mounts <App />
-  index.css                 Tailwind v4 theme tokens (Asap / Geist Mono)
+  index.css                 Tailwind v4 theme tokens (Poppins, dark control-room palette)
   app/                      app root and providers
   layout/                   page shell
   components/
@@ -94,7 +95,8 @@ src/
     motion/                 sim / hardware target, limits
     parts/                  hardware parts catalogue
     connection/             rosbridge URL
-    overlay/                floating cards over the viewport
+    overlay/                left telemetry panel (status, torque when measured)
+    logs/                   system log store, event feed and log section
     viewport/               three.js canvas, model, joint tracker, toolbar
     robot/                  robot store, rosbridge feed, command sender
     demos/                  automatic-mode demos and their runner
@@ -113,6 +115,7 @@ Inside a feature folder every file is named after what it holds:
 | `thing.store.ts` | zustand store and selectors |
 | `use-thing.ts` | a hook |
 | `thing.context.ts` | a React context |
+| `thing.test.ts` | Vitest unit tests for the file next to it (e.g. `robot.store.test.ts` tests `robot.store.ts`) |
 
 Imports always use the `@/` alias (`@/features/parts/parts.content`), never
 relative `./` or `../` paths.
@@ -168,6 +171,9 @@ default `ws://localhost:9090`; override with `VITE_ROSBRIDGE_URL`). See the
 | `pnpm typecheck` | TypeScript check |
 | `pnpm check` | Biome: lint + format + import order, no changes |
 | `pnpm check:fix` | Biome: apply safe fixes and formatting |
+| `pnpm test` | Vitest unit tests (`src/**/*.test.ts`), once |
+| `pnpm test:watch` | Vitest in watch mode |
+| `pnpm test:coverage` | Vitest once with coverage: table in the terminal, HTML in `coverage/` |
 | `pnpm lint` | Biome lint only |
 | `pnpm format` | Biome format only |
 
@@ -179,6 +185,45 @@ Biome config is in `biome.json`: double quotes, no semicolons, 2-space indent,
 ```bash
 cd dist && python3 -m http.server 8080
 ```
+
+## CI
+
+GitHub Actions ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push to
+`main`, on pull requests, weekly (Monday 06:00 UTC, to catch new advisories) and on demand.
+The badge at the top shows the latest run on `main`.
+
+| Job | Steps | Fails when |
+| --- | --- | --- |
+| Dependencies | install with the frozen lockfile, `pnpm audit`, dependency report; on pull requests also GitHub's dependency review | `pnpm-lock.yaml` is out of date, a high or critical advisory has a fixed version, or a PR adds a dependency with a high or critical advisory |
+| Lint, typecheck, test, build | `biome ci`, `pnpm typecheck`, `pnpm test`, `pnpm build` | any of them fails (all run, so one run lists every problem) |
+
+Reports: each run's **Summary** page has the Vitest test report, a coverage table and the
+dependency report (all advisories, including ones with no fix yet, and outdated packages).
+Failing tests and Biome errors show as annotations on the code; the JUnit file and the
+HTML coverage report are downloadable as the `test-report` artifact. Coverage has no
+minimum: the 3D view and most components are deliberately untested. The ROS contract
+tests are skipped in CI, because `public/robot` links into the ava-arm checkout; run
+`pnpm test` inside ava-arm to include them.
+
+Also in `.github/`:
+
+- **CodeQL** ([`workflows/codeql.yml`](.github/workflows/codeql.yml)): static security analysis of
+  the TypeScript code and the workflow files, same triggers; findings land under
+  Security → Code scanning.
+- **Dependabot** ([`dependabot.yml`](.github/dependabot.yml)): one grouped pull request a week
+  for npm packages and one for the workflow actions, skipping releases younger than 7 days.
+  Security-fix PRs are enabled in the repo settings and open as soon as a fix exists.
+- **Pinned actions**: every action is pinned to a commit SHA with its version as a comment;
+  Dependabot bumps both.
+- **Branch protection** ([`rulesets/main.json`](.github/rulesets/main.json), applied in the repo
+  settings): `main` takes changes through pull requests that pass both CI jobs; force-push and
+  deleting `main` are blocked. Repository admins can bypass (push directly). To change the
+  rules, edit the file and apply it with
+  `gh api -X PUT repos/TomasSirotek/ava-dashboard/rulesets/<id> --input .github/rulesets/main.json`
+  (`gh api repos/TomasSirotek/ava-dashboard/rulesets` lists the id).
+
+Before pushing, the same checks locally: `pnpm check && pnpm typecheck && pnpm test && pnpm build`
+(`pnpm test:coverage` for the coverage table).
 
 ## Stack
 

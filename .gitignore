@@ -6,6 +6,10 @@ dist/
 dist-ssr/
 *.tsbuildinfo
 
+# test output (pnpm test:coverage, CI test report)
+coverage/
+reports/
+
 # vite
 .vite/
 vite.config.ts.timestamp-*

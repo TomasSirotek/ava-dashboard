@@ -12,15 +12,47 @@ All notable changes to the dashboard. Format: [Keep a Changelog](https://keepach
 - Motion tab: velocity scale and duration set the move time.
 - Axis gizmo (X/Y/Z in the ROS frame) in the 3D viewport.
 - Arm lengths: click an arm part to highlight it and see its lengths (printed part and joint to joint), read from the URDF; Esc clears.
+- System logs section in the left panel: timestamped session, rosbridge link, live data, e-stop, control mode, gamepad and demo events.
+- Header shows the system time and a per-page-load session ID.
+- Unit tests (Vitest, `pnpm test`), next to the code they cover: joint limits and controller joints against `ava_description` (skipped when the `public/robot` symlink is missing), built-in poses inside the joint limits, `/joint_states` mapping, slider lock rules, the trajectory message, the command throttle and e-stop hold, and the demo runner.
+- GitHub Actions CI (`.github/workflows/ci.yml`): dependency job (frozen lockfile, audit gate on fixable high/critical advisories, dependency report, dependency review on PRs) and build job (Biome, typecheck, unit tests with coverage, build), with test report and coverage table in the run summary; weekly scheduled run; status badge in the README. Actions pinned to commit SHAs.
+- CodeQL code scanning (`.github/workflows/codeql.yml`) for the TypeScript code and the workflows.
+- Dependabot (`.github/dependabot.yml`): weekly grouped update PRs for npm packages and actions, 7-day cooldown.
+- Branch protection for `main` (`.github/rulesets/main.json`): pull requests with both CI jobs green, no force-push or deletion, admin bypass.
+- `pnpm test:coverage` (`@vitest/coverage-v8`).
+- Joint angle readout says where the number comes from: `sim` (built-in simulation), `live` (measured, Gazebo) or `cmd` (real arm: the servos report nothing back, so it is the commanded angle), with a tooltip.
 
 ### Changed
-- Servo layout corrected to 2x MG996R + 4x SG90: the torque card and Parts tab listed 3x MG996R. MG996R now drives `shoulder_pan` and `shoulder_lift` only; everything from the elbow out is an SG90, matching the effort limits in `ava_description`.
-- Parts catalogue lists all six servos (J5 `wrist_roll` and J6 `gripper` were missing).
+- Restyled to a dark control-room look: flat panels on a near-black background, hairline dividers, one orange accent, Poppins for all text (numbers use tabular figures; no monospace font any more). Dark theme is now the default.
+- One type scale in both panels: uppercase captions (section headings, ID / Model, status cells, tabs) 11 px medium; item names (joints, torque rows, fields) 14 px medium; helper text 12 px muted; numbers 12 px.
+- Segmented tabs (Control mode, Motion target) and the joint highlight pills share one look: outlined row, hairlines, orange tint on the selected option. Right panel tabs size to their labels, so CONTROL and MOTION no longer overlap.
+- Toasts use the app's panel colours, radius and fonts; only the icon carries the status colour (previously sonner's saturated "rich colors").
+- Viewport joint frame, part label and the active demo card use the theme accent instead of a hard-coded orange.
+- The floating cards over the 3D view (info, torque, camera) are now one telemetry panel on the left with hairline-separated sections, matching the right panel; sections inside the right tabs are separated the same way. Connection status and control mode moved from the header into the panel's info section.
+- E-stop button reads EMERGENCY STOP (red outline), solid red when engaged.
+- Sliders are thin tracks with a round thumb; the value moved out of the thumb into the field header (or the number box for joints).
+- Left and right panels share one width (320 px) and the same section padding; joint rows, field stacks and tab sections use one spacing scale.
+- Status block in the left panel is one outlined grid: connection and online side by side, control mode full width below, hairlines instead of gaps.
+- Header: system time and session ID form one outlined group split by a hairline, same height as the e-stop; the theme toggle is a matching square.
+- Joint rows and the torque list show display names (Shoulder pan) instead of ROS ids (`shoulder_pan`).
+- Servo layout follows the hardware: 3x MG996R (`shoulder_pan`, `shoulder_lift`, `elbow_flex`) + 3x SG90 (wrist flex, wrist roll, gripper), matching the effort limits in `ava_description`. Torque percentages use the URDF stall torques (SG90 0.157 N·m at 6 V, was 0.1765).
+- Parts tab is the build's catalogue: six servos (J1–J6 with their PCA9685 channel), ESP32-C3-DevKitM-1, PCA9685 and XL4016E1 step-down, each with photo and datasheet, filterable by Servos / Control / Power.
+- Torque section only appears while `/joint_states` carries effort (Gazebo, mock hardware). The real servos cannot measure torque and the offline simulation no longer makes it up, so it is hidden there.
+- Demo poses redrawn for the new arm (they used the SO-101 ranges); gripper open / closed follow the SRDF named states. Startup target pose moved inside the limits.
+- Header system time and session ID are centred in their cells; the control mode cell in the left panel is drawn inverted (foreground fill) and works in both themes.
 - Viewport link names follow the new arm model: `forearm_link`, `gripper_base_link`, `gripper_jaw_link` (were `lower_arm_link`, `gripper_link`, `moving_jaw_link`).
 - Viewport scale retuned (2 -> 1.7) for the taller arm (~0.58 m at home).
 - 3D viewport loads the robot's URDF (`public/robot`, a symlink to `ava_description`) instead of the demo model.
-- Joint slider ranges match the URDF joint limits.
+- Joint slider ranges match the URDF joint limits of the new arm (they still had the SO-101 ranges, e.g. shoulder_lift ±100° instead of −12.1…120°), rounded inward to 0.1°.
 - Status badges (Connected / No joint data / Simulated, Online / Offline, live / sim) reflect the real link state instead of fixed text.
+
+### Removed
+- Current pose card (placeholder values).
+- Camera section and the Kinect from the parts list: there is no camera in the build.
+- Simulated voltage, current, temperature and load readings on the part cards, and the made-up link rate / latency and torque of the offline simulation: nothing in the build measures them.
+- Geist Mono font.
+- Controller (gamepad) mode switched off for now: removed from the mode switch, no gamepad toasts or log entries. The code stays, commented out and marked `Controller mode (disabled)`.
 
 ### Fixed
 - Commands now carry a zero timestamp, so the controller runs them under Gazebo's sim time.
+- Move durations that land just under a whole second (e.g. 2.3 s at 46 % velocity) were sent as `{sec: 4, nanosec: 1000000000}` instead of `{sec: 5, nanosec: 0}`.

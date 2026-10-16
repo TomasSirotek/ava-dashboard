@@ -12,7 +12,7 @@ export function ConnectionPanel() {
     <div className="flex flex-col gap-4">
       <Heading>rosbridge</Heading>
       <Field label="WebSocket URL">
-        <Input className="font-mono" value={url} onChange={(e) => setUrl(e.target.value)} />
+        <Input value={url} onChange={(e) => setUrl(e.target.value)} />
       </Field>
       <Button className="w-full" onClick={() => toast.success("Connecting to rosbridge", { description: url })}>
         Connect

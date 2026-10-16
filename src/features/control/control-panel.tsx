@@ -5,7 +5,7 @@ import { AutoModeConfirm } from "@/features/control/auto-mode-confirm"
 import { CONTROL_MODES } from "@/features/control/control.content"
 import type { ControlMode } from "@/features/control/control.interface"
 import { useControlStore } from "@/features/control/control.store"
-import { ControllerStatus } from "@/features/control/controller-status"
+// Controller mode (disabled): import { ControllerStatus } from "@/features/control/controller-status"
 import { VoiceSettings } from "@/features/control/voice-settings"
 import { DemoPanel } from "@/features/demos/demo-panel"
 
@@ -19,7 +19,7 @@ export function ControlPanel() {
     else setMode(next)
   }
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div>
         <Heading>Control mode</Heading>
         <Tabs value={mode} onValueChange={(v) => changeMode(v as ControlMode)}>
@@ -43,7 +43,7 @@ export function ControlPanel() {
       />
 
       {mode === "manual" && (
-        <p className="text-sm text-muted-foreground">Move the arm with the sliders and target position in the Joints tab.</p>
+        <p className="text-xs text-muted-foreground">Move the arm with the sliders and target position in the Joints tab.</p>
       )}
       {mode === "auto" && (
         <>
@@ -51,7 +51,7 @@ export function ControlPanel() {
           <VoiceSettings />
         </>
       )}
-      {mode === "controller" && <ControllerStatus />}
+      {/* Controller mode (disabled): {mode === "controller" && <ControllerStatus />} */}
     </div>
   )
 }

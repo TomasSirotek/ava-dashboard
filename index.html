@@ -12,8 +12,8 @@
     <link rel="apple-touch-icon" href="/apple-icon.png" />
     <title>AVA Dashboard</title>
     <script>
-      // Apply saved theme before paint to avoid a flash; default is light.
-      const t = localStorage.getItem("ava-ui-theme") || "light"
+      // Apply saved theme before paint to avoid a flash; default is dark (control-room look).
+      const t = localStorage.getItem("ava-ui-theme") || "dark"
       const dark = t === "dark" || (t === "system" && matchMedia("(prefers-color-scheme: dark)").matches)
       document.documentElement.classList.add(dark ? "dark" : "light")
     </script>

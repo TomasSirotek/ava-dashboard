@@ -32,4 +32,6 @@ export const useControlStore = create<IControlStore>()((set, get) => ({
 }))
 
 // `locked` = something other than the user's sliders is driving the arm.
-export const selectLocked = (s: IControlStore) => s.estop || s.mode === "auto" || (s.mode === "controller" && s.pad !== null)
+export const selectLocked = (s: IControlStore) => s.estop || s.mode === "auto"
+// Controller mode (disabled): a connected pad also locks the sliders.
+// || (s.mode === "controller" && s.pad !== null)

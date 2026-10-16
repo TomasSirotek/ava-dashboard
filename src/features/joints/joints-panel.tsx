@@ -1,7 +1,7 @@
 import { TriangleAlert } from "lucide-react"
 import { toast } from "sonner"
 import { Heading } from "@/components/shared/heading"
-import { whiteButton } from "@/components/shared/shared.styles"
+import { secondaryButton } from "@/components/shared/shared.styles"
 import { Button } from "@/components/ui/button"
 import { CONTROL_MODES } from "@/features/control/control.content"
 import { selectLocked, useControlStore } from "@/features/control/control.store"
@@ -21,22 +21,14 @@ export function JointsPanel() {
   }
   return (
     <div>
-      <Heading
-        action={
-          <Button size="sm" variant="outline" className={whiteButton} disabled={locked} onClick={goHome}>
-            <TriangleAlert /> Home
-          </Button>
-        }
-      >
-        Joint positions
-      </Heading>
+      <Heading>Joint positions</Heading>
       <JointPills />
       {locked && (
-        <p className="-mt-2 mb-4 text-xs text-muted-foreground">
+        <p className="-mt-1 mb-4 text-xs text-muted-foreground">
           Sliders are locked while {CONTROL_MODES[mode].label.toLowerCase()} control is driving the arm.
         </p>
       )}
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
         {JOINT_NAMES.map((name, i) => (
           <JointRow key={name} index={i} value={joints[i]} disabled={locked} onChange={(v) => setJoint(i, v)} />
         ))}

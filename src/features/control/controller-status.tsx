@@ -1,5 +1,5 @@
 import { Gamepad2 } from "lucide-react"
-import { whiteButton } from "@/components/shared/shared.styles"
+import { secondaryButton } from "@/components/shared/shared.styles"
 import { Button } from "@/components/ui/button"
 import { PAD_HINT } from "@/features/control/control.content"
 import { useControlStore } from "@/features/control/control.store"
@@ -19,7 +19,7 @@ export function ControllerStatus() {
       </div>
       <p className="max-w-full truncate text-xs text-muted-foreground">{pad ?? PAD_HINT}</p>
       {!pad && (
-        <Button size="sm" variant="outline" className={whiteButton} onClick={rescanPads}>
+        <Button size="sm" variant="outline" className={secondaryButton} onClick={rescanPads}>
           Reconnect
         </Button>
       )}

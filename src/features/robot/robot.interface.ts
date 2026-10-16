@@ -1,8 +1,15 @@
+/** Where the shown joint angles come from: built-in simulation, measured (Gazebo), or commanded (real arm). */
+export type JointReadout = "sim" | "live" | "cmd"
+
 export interface IJointState {
   name: string[]
   position: number[]
   velocity: number[]
-  effort: number[]
+  /**
+   * % of stall torque per joint, or null when nothing measures it: the offline simulation and the real
+   * arm (hobby servos report no torque). Only Gazebo and ros2_control's mock hardware publish effort.
+   */
+  effort: number[] | null
 }
 
 export interface IRobotState {

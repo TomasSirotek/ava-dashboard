@@ -8,6 +8,8 @@ export interface IHeadingProps {
 
 export interface IFieldProps {
   label: string
+  /** Current value shown right-aligned next to the label (e.g. a slider's percentage). */
+  value?: ReactNode
   children: ReactNode
 }
 

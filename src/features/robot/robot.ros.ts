@@ -22,7 +22,9 @@ export function attachRos(ros: Ros | null) {
 /** Send a single-point trajectory to the joint_trajectory_controller. False when offline. */
 export function publishJointTarget(positionsDeg: number[], durationS: number) {
   if (!trajectory) return false
-  const sec = Math.floor(durationS)
+  // Round once in nanoseconds, then split, so e.g. 4.999999999999999 s becomes 5 s + 0 ns, never 4 s + 1e9 ns.
+  const ns = Math.round(durationS * 1e9)
+  const sec = Math.floor(ns / 1e9)
   trajectory.publish({
     // Zero stamp = "start now" on the controller's own clock. Without it rosbridge stamps the
     // message with wall-clock time, which Gazebo (sim time) treats as far in the future and never runs.
@@ -31,7 +33,7 @@ export function publishJointTarget(positionsDeg: number[], durationS: number) {
     points: [
       {
         positions: positionsDeg.map((d) => d * DEG_TO_RAD),
-        time_from_start: { sec, nanosec: Math.round((durationS - sec) * 1e9) },
+        time_from_start: { sec, nanosec: ns - sec * 1e9 },
       },
     ],
   })

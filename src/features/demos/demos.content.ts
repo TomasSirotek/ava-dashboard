@@ -3,9 +3,14 @@ import type { DemoId, IDemo, IDemoStep } from "@/features/demos/demos.interface"
 import { JOINT_LIMITS } from "@/features/joints/joints.content"
 
 // Poses are degrees in JOINT_NAMES order: shoulder_pan, shoulder_lift, elbow_flex, wrist_flex,
-// wrist_roll, gripper. All stay inside JOINT_LIMITS. Gripper: -60 = open, 0 = closed.
-const READY = [0, -40, 60, 30, 0, 0]
-const OPEN = -60
+// wrist_roll, gripper. All stay inside JOINT_LIMITS (demos.content.test.ts checks it).
+// shoulder_lift > 0 raises the arm, elbow_flex > 0 bends the forearm forward, wrist_flex < 0 tips the
+// gripper down. Gripper open / closed follow the SRDF named states (-0.59 / 0.19 rad).
+const OPEN = -30
+const CLOSED = 10
+const READY = [0, 50, 70, -40, 0, CLOSED]
+const ABOVE = [30, 70, -50, 0] // shoulder_lift .. wrist_roll over a pick spot
+const DOWN = [15, 75, -60, 0] // lowered onto it
 
 const at = (pose: number[], hold = 0.3): IDemoStep => ({ pose, hold })
 
@@ -26,7 +31,7 @@ export const DEMOS: Record<DemoId, IDemo> = {
     description: "Pan side to side with a wrist flick",
     icon: Hand,
     loop: true,
-    steps: [at(READY), at([45, -40, 60, 10, 0, 0]), at([-45, -40, 60, 50, 0, 0])],
+    steps: [at(READY), at([45, 50, 70, -10, 0, CLOSED]), at([-45, 50, 70, -70, 0, CLOSED])],
   },
   "pick-place": {
     id: "pick-place",
@@ -35,14 +40,14 @@ export const DEMOS: Record<DemoId, IDemo> = {
     icon: PackageOpen,
     loop: true,
     steps: [
-      at([40, -30, 50, 40, 0, OPEN]), // above pick
-      at([40, 10, 30, 50, 0, OPEN]), // down
-      at([40, 10, 30, 50, 0, 0], 0.6), // grip
-      at([40, -30, 50, 40, 0, 0]), // lift
-      at([-40, -30, 50, 40, 0, 0]), // carry
-      at([-40, 10, 30, 50, 0, 0]), // down
-      at([-40, 10, 30, 50, 0, OPEN], 0.6), // release
-      at([-40, -30, 50, 40, 0, OPEN]), // up
+      at([40, ...ABOVE, OPEN]), // above pick
+      at([40, ...DOWN, OPEN]), // down
+      at([40, ...DOWN, CLOSED], 0.6), // grip
+      at([40, ...ABOVE, CLOSED]), // lift
+      at([-40, ...ABOVE, CLOSED]), // carry
+      at([-40, ...DOWN, CLOSED]), // down
+      at([-40, ...DOWN, OPEN], 0.6), // release
+      at([-40, ...ABOVE, OPEN]), // up
       at(READY, 0.8),
     ],
   },
@@ -60,7 +65,7 @@ export const DEMOS: Record<DemoId, IDemo> = {
     description: "Go to zero, then fold into the rest pose",
     icon: House,
     loop: false,
-    steps: [at([0, 0, 0, 0, 0, 0], 0.8), at([0, -80, 90, 40, 0, 0])],
+    steps: [at([0, 0, 0, 0, 0, 0], 0.8), at([0, 0, 90, -90, 0, CLOSED])],
   },
 }
 
