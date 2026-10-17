@@ -34,3 +34,14 @@ Thumbs.db
 
 # symlink into ../ros2_ws/src/ava_description (URDF + meshes, single source of truth)
 /public/robot
+
+# AI-agent files: local only for now (same rule as the ava-arm repo)
+.omp/
+.claude/
+.cursor/
+AGENTS.md
+CLAUDE.md
+GEMINI.md
+.cursorrules
+.mcp.json
+.github/copilot-instructions.md
