@@ -14,7 +14,7 @@ export function Viewport({ className }: IGridPanelProps) {
   const positions = useRobotStore((s) => s.jointState.position)
   const jointLabels = JOINT_NAMES.map((name, i) => `J${i + 1} ${name} · ${positions[i].toFixed(1)}°`)
   return (
-    <Panel title="3D view · ava.urdf" icon={Box} className={className} bodyClassName="overflow-hidden max-lg:min-h-[60svh]">
+    <Panel title="3D view · ava.urdf" icon={Box} className={className} bodyClassName="overflow-hidden">
       <Suspense fallback={<div className="absolute inset-0 bg-muted/40" />}>
         <RobotViewport joints={highlighted} jointLabels={jointLabels} />
       </Suspense>

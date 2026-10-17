@@ -2,16 +2,18 @@ import { Table2 } from "lucide-react"
 import { Panel } from "@/components/shared/panel"
 import type { IGridPanelProps } from "@/components/shared/shared.interface"
 import { capsLabel } from "@/components/shared/shared.styles"
-import { EFFORT_WARN, JOINT_LIMITS } from "@/features/joints/joints.content"
+import { EFFORT_WARN, JOINT_LIMITS, JOINT_TABLE_COLUMNS } from "@/features/joints/joints.content"
 import { useJointHighlightStore } from "@/features/joints/joints.store"
 import { JOINT_LABELS, JOINT_NAMES, JOINT_SERVOS } from "@/features/robot/robot.content"
 import { selectReadout, useRobotStore } from "@/features/robot/robot.store"
 import { cn } from "@/lib/utils"
 
-const HEADERS = ["Joint", "Servo", "Angle", "Target", "Range", "Effort"]
+// Visibility class per column, in table order; header and cells share it.
+const show = JOINT_TABLE_COLUMNS.map((c) => c.className)
 
 // Every joint at a glance. Clicking a row highlights that joint in the 3D view (same as the joint pills).
 // Effort shows "—" unless /joint_states carries it (Gazebo); the real servos cannot measure it.
+// Narrow panels drop the less important columns (container queries on the panel body, see JOINT_TABLE_COLUMNS).
 export function JointsTable({ className }: IGridPanelProps) {
   const { position, effort } = useRobotStore((s) => s.jointState)
   const commanded = useRobotStore((s) => s.commanded)
@@ -20,12 +22,12 @@ export function JointsTable({ className }: IGridPanelProps) {
   const toggle = useJointHighlightStore((s) => s.toggle)
   return (
     <Panel title="Joints" icon={Table2} className={className} meta={<span>Angle source: {readout} · click a row to highlight it</span>}>
-      <table className="w-full text-xs tabular-nums">
+      <table className="w-full text-xs whitespace-nowrap tabular-nums">
         <thead className="sticky top-0 bg-card">
           <tr className="border-b text-muted-foreground">
-            {HEADERS.map((h, i) => (
-              <th key={h} className={cn(capsLabel, "px-3 py-2 font-medium", i < 2 ? "text-left" : "text-right")}>
-                {h}
+            {JOINT_TABLE_COLUMNS.map(({ label, className: visibility }, i) => (
+              <th key={label} className={cn(capsLabel, "px-3 py-2 font-medium", i < 2 ? "text-left" : "text-right", visibility)}>
+                {label}
               </th>
             ))}
           </tr>
@@ -41,21 +43,22 @@ export function JointsTable({ className }: IGridPanelProps) {
                 onClick={() => toggle(i)}
                 className="cursor-pointer border-b last:border-0 hover:bg-muted/50 aria-selected:bg-primary/10"
               >
-                <td className="px-3 py-1.5">
+                <td className={cn("px-3 py-1.5", show[0])}>
                   <span className="flex items-center gap-1.5">
-                    <span className={cn("size-1.5 rounded-full", on ? "bg-primary" : "bg-muted-foreground/40")} />
+                    <span className={cn("size-1.5 shrink-0 rounded-full", on ? "bg-primary" : "bg-muted-foreground/40")} />
                     <span className="text-muted-foreground">J{i + 1}</span> {JOINT_LABELS[i]}
                   </span>
                 </td>
-                <td className="px-3 py-1.5 text-muted-foreground">{JOINT_SERVOS[i]}</td>
-                <td className="px-3 py-1.5 text-right">{position[i].toFixed(1)}°</td>
-                <td className="px-3 py-1.5 text-right text-muted-foreground">{commanded[i].toFixed(1)}°</td>
-                <td className="px-3 py-1.5 text-right text-muted-foreground">
+                <td className={cn("px-3 py-1.5 text-muted-foreground", show[1])}>{JOINT_SERVOS[i]}</td>
+                <td className={cn("px-3 py-1.5 text-right", show[2])}>{position[i].toFixed(1)}°</td>
+                <td className={cn("px-3 py-1.5 text-right text-muted-foreground", show[3])}>{commanded[i].toFixed(1)}°</td>
+                <td className={cn("px-3 py-1.5 text-right text-muted-foreground", show[4])}>
                   {JOINT_LIMITS[i].min} … {JOINT_LIMITS[i].max}°
                 </td>
                 <td
                   className={cn(
                     "px-3 py-1.5 text-right",
+                    show[5],
                     load === undefined && "text-muted-foreground",
                     load !== undefined && load > EFFORT_WARN && "text-destructive",
                   )}

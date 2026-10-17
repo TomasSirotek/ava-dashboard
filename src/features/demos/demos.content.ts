@@ -1,5 +1,5 @@
 import { ArrowLeftRight, Hand, House, PackageOpen } from "lucide-react"
-import type { DemoId, IDemo, IDemoStep } from "@/features/demos/demos.interface"
+import type { DemoId, IDemo, IDemoRun, IDemoStep, StepKind } from "@/features/demos/demos.interface"
 import { JOINT_LIMITS } from "@/features/joints/joints.content"
 
 // Poses are degrees in JOINT_NAMES order: shoulder_pan, shoulder_lift, elbow_flex, wrist_flex,
@@ -78,3 +78,20 @@ export const DEMOS: Record<DemoId, IDemo> = {
 
 // Extra wait after each move so the arm settles before the hold starts (s).
 export const DEMO_SETTLE_S = 0.2
+
+// Timeline bar colours. Hold is the wait at the reached pose; planned steps are drawn as outlines.
+export const STEP_KIND_STYLES: Record<StepKind, { label: string; className: string }> = {
+  motion: { label: "Motion", className: "bg-primary" },
+  gripper: { label: "Gripper", className: "bg-chart-2" },
+}
+export const HOLD_STYLE = { label: "Hold", className: "bg-muted-foreground/40" }
+
+export const RUN_STATUS_STYLES: Record<IDemoRun["status"], { label: string; className: string }> = {
+  running: { label: "Running", className: "text-green-600 dark:text-green-400" },
+  finished: { label: "Finished", className: "text-foreground" },
+  stopped: { label: "Stopped", className: "text-amber-600 dark:text-amber-400" },
+}
+
+// Time-axis spacing candidates (s); the timeline uses the smallest that gives at most 6 ticks.
+export const TIMELINE_TICK_STEPS = [1, 2, 5, 10, 15, 30, 60, 120, 300]
+export const TIMELINE_MAX_TICKS = 6

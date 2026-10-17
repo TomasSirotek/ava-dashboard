@@ -1,4 +1,4 @@
-import { capsLabel } from "@/components/shared/shared.styles"
+import { capsLabel, invertedFill } from "@/components/shared/shared.styles"
 import { CONTROL_MODES } from "@/features/control/control.content"
 import { useControlStore } from "@/features/control/control.store"
 import { useNavigationStore } from "@/features/navigation/navigation.store"
@@ -16,10 +16,7 @@ export function ModeBadge() {
       type="button"
       title="Open control settings"
       onClick={() => open("control")}
-      className={cn(
-        capsLabel,
-        "flex h-7 items-center gap-1.5 rounded-sm bg-foreground px-2.5 text-background transition-colors hover:bg-foreground/90",
-      )}
+      className={cn(capsLabel, invertedFill, "flex h-7 items-center gap-1.5 rounded-sm px-2.5 transition-colors")}
     >
       <Icon className="size-3.5 opacity-70" />
       {label}

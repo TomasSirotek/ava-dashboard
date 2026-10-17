@@ -2,6 +2,7 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { Field } from "@/components/shared/field"
 import { Heading } from "@/components/shared/heading"
+import { invertedFill } from "@/components/shared/shared.styles"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DEFAULT_ROSBRIDGE_URL } from "@/features/connection/connection.content"
@@ -14,7 +15,7 @@ export function ConnectionPanel() {
       <Field label="WebSocket URL">
         <Input value={url} onChange={(e) => setUrl(e.target.value)} />
       </Field>
-      <Button className="w-full" onClick={() => toast.success("Connecting to rosbridge", { description: url })}>
+      <Button className={`w-full ${invertedFill}`} onClick={() => toast.success("Connecting to rosbridge", { description: url })}>
         Connect
       </Button>
     </div>

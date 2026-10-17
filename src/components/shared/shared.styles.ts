@@ -1,6 +1,11 @@
 // Secondary action button: thin outline on the panel background, used next to headings and for minor actions.
 export const secondaryButton = "border-border bg-transparent text-foreground hover:bg-accent hover:text-foreground"
 
+// Selected / main action drawn inverted (foreground fill): white on dark, near-black on light. Used by the control
+// mode chip and the Connect button; the joint pills and segmented tabs repeat it as aria-pressed: / data-active: variants.
+// `!` beats the Button variant's own bg/text (incl. its dark: variants).
+export const invertedFill = "bg-foreground! text-background! hover:bg-foreground/90! rounded-none"
+
 // Right column body: one flat column whose sections are separated by hairlines (controls tabs, details).
 // Every section gets the same padding.
 export const panelStack = "flex flex-col divide-y *:p-4"

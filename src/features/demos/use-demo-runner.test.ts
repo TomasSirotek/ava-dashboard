@@ -23,7 +23,7 @@ beforeEach(() => {
   useRobotStore.setState(structuredClone(INITIAL_ROBOT_STATE))
   useMotionStore.setState({ target: "sim", ...MOTION_DEFAULTS })
   useControlStore.setState({ mode: "auto", estop: false, pad: null })
-  useDemoStore.setState({ running: null, step: 0 })
+  useDemoStore.setState({ running: null, step: 0, run: null })
   renderHook(() => useDemoRunner())
 })
 afterEach(() => {

@@ -1,6 +1,7 @@
 import type { NumberField } from "@base-ui/react/number-field"
 import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
+import type { GroupProps } from "react-resizable-panels"
 
 export interface IPanelProps {
   title: string
@@ -11,7 +12,7 @@ export interface IPanelProps {
   actions?: ReactNode
   /** Grid placement and size of the panel. */
   className?: string
-  /** Body classes; the body already fills the panel and scrolls. */
+  /** Body classes; the body already fills the panel, scrolls and is a size container (`@sm:`, `@md:` variants). */
   bodyClassName?: string
   children: ReactNode
 }
@@ -19,6 +20,17 @@ export interface IPanelProps {
 /** Dashboard panels take their grid placement from the page layout. */
 export interface IGridPanelProps {
   className?: string
+}
+
+export interface IPersistentPanelGroupProps extends Omit<GroupProps, "defaultLayout" | "onLayoutChanged"> {
+  /** Unique group id; also the localStorage key of the saved layout. */
+  id: string
+}
+
+/** Drag source data a grid slot hands to its Panel. */
+export interface IPanelDrag {
+  /** Panel id written to the drag data. */
+  id: string
 }
 
 export interface IHeadingProps {

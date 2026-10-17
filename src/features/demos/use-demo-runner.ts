@@ -13,18 +13,18 @@ export function useDemoRunner() {
     let timer: number | undefined
 
     const play = (step: number) => {
-      const { running, setStep, stop } = useDemoStore.getState()
+      const { running, beginStep, finish } = useDemoStore.getState()
       if (!running) return
       const demo = DEMOS[running]
       if (step >= demo.steps.length) {
         if (!demo.loop) {
-          stop()
+          finish()
           toast.success(`${demo.label} finished`)
           return
         }
         step = 0
       }
-      setStep(step)
+      beginStep(step)
       useRobotStore.getState().setCommandedAll(demo.steps[step].pose)
       const wait = moveDuration(useMotionStore.getState()) + DEMO_SETTLE_S + demo.steps[step].hold
       timer = window.setTimeout(() => play(step + 1), wait * 1000)

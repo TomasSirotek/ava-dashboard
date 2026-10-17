@@ -2,6 +2,7 @@ import type { Ros } from "roslib"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 import { JOINT_NAMES, TRAJECTORY_TOPIC } from "@/features/robot/robot.content"
 import { attachRos, publishJointTarget } from "@/features/robot/robot.ros"
+import { useRobotStore } from "@/features/robot/robot.store"
 
 // Capture what would go out over rosbridge instead of opening a socket.
 const topic = vi.hoisted(() => ({ options: undefined as unknown, advertise: vi.fn(), publish: vi.fn() }))
@@ -24,10 +25,12 @@ beforeEach(() => {
 })
 
 describe("publishJointTarget", () => {
-  it("does nothing while offline", () => {
+  it("does nothing while offline, and counts nothing as sent", () => {
     attachRos(null)
+    const sent = useRobotStore.getState().commandsSent
     expect(publishJointTarget([0, 0, 0, 0, 0, 0], 1)).toBe(false)
     expect(topic.publish).not.toHaveBeenCalled()
+    expect(useRobotStore.getState().commandsSent).toBe(sent)
   })
 
   it("advertises a JointTrajectory publisher on the controller topic as soon as rosbridge connects", () => {
@@ -44,6 +47,14 @@ describe("publishJointTarget", () => {
     const expected = [Math.PI / 2, -Math.PI / 4, 0, Math.PI, 0, (10 * Math.PI) / 180]
     msg.points[0].positions.forEach((v: number, i: number) => expect(v).toBeCloseTo(expected[i], 9))
     expect(msg.points[0].time_from_start).toEqual({ sec: 2, nanosec: 500_000_000 })
+  })
+
+  it("counts every published command for the Streams section", () => {
+    const sent = useRobotStore.getState().commandsSent
+    publishJointTarget([0, 0, 0, 0, 0, 0], 1)
+    publishJointTarget([0, 0, 0, 0, 0, 0], 1)
+    expect(useRobotStore.getState().commandsSent).toBe(sent + 2)
+    expect(useRobotStore.getState().lastCommandAt).not.toBeNull()
   })
 
   it.each([

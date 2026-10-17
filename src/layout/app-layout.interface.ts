@@ -10,13 +10,23 @@ export interface IAppLayoutProps {
   aside: ReactNode
 }
 
+/** The movable panels of the grid. */
+export type GridPanelId = "viewport" | "robot-state" | "joints" | "logs" | "timeline"
+
 export interface IPanelGridProps {
-  /** Top row: large 3D view and the charts next to it. */
-  primary: ReactNode
-  side: ReactNode
-  /** Middle row, left and right. */
-  left: ReactNode
-  right: ReactNode
-  /** Thin full-width bottom row. */
-  footer: ReactNode
+  /** Every panel by id; the grid places them in the order stored in the layout store. */
+  panels: Record<GridPanelId, ReactNode>
+}
+
+export interface IPanelLayoutStore {
+  /** Panel shown in each grid slot: top row left and right, middle row left and right, then the full-width bottom row. */
+  order: GridPanelId[]
+  /** Exchange the slots of two panels (a panel dropped onto another). */
+  swap: (a: GridPanelId, b: GridPanelId) => void
+}
+
+export interface IPanelSlotProps {
+  id: GridPanelId
+  children: ReactNode
+  className?: string
 }

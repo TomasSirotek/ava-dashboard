@@ -35,7 +35,12 @@ export function useSystemLog() {
       useDemoStore.subscribe((s, prev) => {
         if (s.running === prev.running) return
         if (s.running) add("info", "demo", `Demo started: ${DEMOS[s.running].label}`)
-        else if (prev.running) add("info", "demo", `Demo stopped: ${DEMOS[prev.running].label}`)
+        else if (prev.running)
+          add(
+            s.run?.status === "finished" ? "success" : "info",
+            "demo",
+            `Demo ${s.run?.status === "finished" ? "finished" : "stopped"}: ${DEMOS[prev.running].label}`,
+          )
       }),
     ]
     return () => {

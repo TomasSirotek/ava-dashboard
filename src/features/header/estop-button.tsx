@@ -14,7 +14,7 @@ export function EstopButton() {
       variant="outline"
       className={cn(
         capsLabel,
-        "h-9 min-w-48 gap-2 rounded-sm px-4 text-xs",
+        "h-9 gap-2 rounded-sm px-3 text-xs sm:min-w-48 sm:px-4",
         // dark: variants are repeated because the outline variant sets its own dark:border/bg.
         estop
           ? "border-destructive bg-destructive text-white hover:bg-destructive/90 hover:text-white dark:border-destructive dark:bg-destructive dark:hover:bg-destructive/90"
@@ -22,7 +22,16 @@ export function EstopButton() {
       )}
       onClick={toggleEstop}
     >
-      <OctagonX /> {estop ? "Release" : "Emergency stop"}
+      {/* Short label on phones; the red outline and icon keep it unmistakable. */}
+      <OctagonX />{" "}
+      {estop ? (
+        "Release"
+      ) : (
+        <span>
+          <span className="sm:hidden">Stop</span>
+          <span className="max-sm:hidden">Emergency stop</span>
+        </span>
+      )}
     </Button>
   )
 }

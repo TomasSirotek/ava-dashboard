@@ -1,10 +1,12 @@
-<h1 align="center">◈ &nbsp;A V A &nbsp;◈</h1>
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo-dark.svg">
+    <img src="docs/logo-light.svg" alt="App logo" height="54" align="absmiddle">
+  </picture>
+</h1>
 
-<hr>
 
-<p align="center"><b>web dashboard for a 6-DOF desk arm · live 3D view · ROS 2 over rosbridge</b></p>
-
-<p align="center"><a href="https://github.com/TomasSirotek/ava-dashboard/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/TomasSirotek/ava-dashboard/actions/workflows/ci.yml/badge.svg?branch=main"></a>&nbsp;<a href="https://github.com/TomasSirotek/ava-arm"><img alt="part of ava-arm" src="https://img.shields.io/badge/part%20of-ava--arm-000000?style=flat-square"></a>&nbsp;<img alt="built with Vite + React" src="https://img.shields.io/badge/built%20with-Vite%20%2B%20React-e5e5e5?style=flat-square&labelColor=000000">&nbsp;<img alt="ROS 2 Jazzy" src="https://img.shields.io/badge/ROS%202-Jazzy-dc2626?style=flat-square&labelColor=000000">&nbsp;<img alt="runs on Raspberry Pi" src="https://img.shields.io/badge/runs%20on-Raspberry%20Pi-ffffff?style=flat-square&labelColor=000000"></p>
+<p align="center"><a href="https://github.com/TomasSirotek/ava-dashboard/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/TomasSirotek/ava-dashboard/actions/workflows/ci.yml/badge.svg?branch=main"></a>&nbsp;<a href="https://github.com/TomasSirotek/ava-arm"><img alt="part of ava-arm" src="https://img.shields.io/badge/part%20of-ava--arm-ffffff?style=flat-square"></a>&nbsp;<img alt="built with Vite + React" src="https://img.shields.io/badge/built%20with-Vite%20%2B%20React-e5e5e5?style=flat-square&labelColor=000000">&nbsp;<img alt="ROS 2 Jazzy" src="https://img.shields.io/badge/ROS%202-Jazzy-ffffff?style=flat-square&labelColor=000000">&nbsp;<img alt="runs on ESP32" src="https://img.shields.io/badge/runs%20on-ESP32-ffffff?style=flat-square&labelColor=000000"></p>
 
 <p align="center"><img src="docs/dashboard-v2.png" alt="AVA dashboard: header, status toolbar, panel grid with the 3D arm view, robot state charts, joints table, logs and demo timeline, controls on the right" width="100%"></p>
 
@@ -19,16 +21,22 @@ needs no server of its own.
 
 ## Features
 
-One page, fitted to the window on large screens (panels scroll inside), stacked on small ones.
+One page. On large screens (≥ 1024 px) it fits the window in three rows (two panels, two panels, one
+full-width panel). Panels can be moved: drag one by its header (grip icon) onto another, an accent
+placeholder shows where it will land, and on drop the two swap places. Every split is resizable: drag the
+gap between two panels, between the rows, or the line before the right column
+([react-resizable-panels](https://github.com/bvaughn/react-resizable-panels) via shadcn `resizable`);
+sizes are remembered in `localStorage`. On smaller screens everything stacks in one scrolling
+column, and the header drops the environment name and the clock and shortens the e-stop to STOP.
 Everything shown comes from real data: the built-in simulation, Gazebo or the arm; nothing is
 made up to fill a panel.
 
 **Header**: logo, breadcrumb (environment › robot ID), system time, this browser session's ID,
 **Emergency stop / Release**, and a light / dark / system theme toggle (dark by default).
 
-**Toolbar** (chips under the header): overall status, 🟢 All systems nominal (live
-`/joint_states`), 🟠 No joint data (rosbridge up, no robot), 🟠 Simulated · no robot (no rosbridge),
-🔴 Emergency stop; the control mode (click to open the Control tab); and where the joint angles
+**Toolbar** (chips under the header): overall status, All systems nominal (live
+`/joint_states`), No joint data (rosbridge up, no robot), Simulated · no robot (no rosbridge),
+Emergency stop; the control mode (click to open the Control tab); and where the joint angles
 come from (`sim`, `live` measured by Gazebo, `cmd` commanded on the real arm, which reports nothing back).
 
 **Panel grid**: every panel has an icon + title header, an optional stats row and a maximize
@@ -38,9 +46,9 @@ button (Esc restores):
 | --- | --- |
 | 3D view | the robot's real URDF (`public/robot/urdf/ava.urdf`, see [Run](#run)) posed from the joint state: orbit controls, reset camera, grid toggle, help popover, X/Y/Z gizmo in the ROS frame (click an axis to look along it). Highlighted joints get a labelled box; clicking an arm part shows its lengths |
 | Robot state | joint position and velocity of all six joints over the last 30 s (4 Hz); an effort chart (% of stall) only while `/joint_states` carries effort (Gazebo) |
-| Joints | table per joint: servo, angle, target, URDF range, effort ("—" unless measured, red above 85 %). Click a row to highlight the joint |
-| Logs | timestamped events (session, rosbridge link, live data, e-stop, control mode, demos) with level and source, a search box and a level filter |
-| Demo timeline | the running demo's steps as one track, each as wide as its time; current step in the accent colour |
+| Joints | table per joint: servo, angle, target, URDF range, effort ("—" unless measured, red above 85 %). Click a row to highlight the joint. A narrow panel hides Servo, then Target, then Range (container queries); Joint, Angle and Effort always show |
+| Logs | timestamped events (session, rosbridge link, live data, e-stop, control mode, demos) with level and source, a search box and a level filter; a narrow panel hides the source column |
+| Demo timeline | the current or last demo cycle as a Gantt chart: one row per step on a shared m:ss axis. Executed steps sit at the times they really ran (move in orange, or green for gripper-only steps, then the hold in grey), the running step grows up to the playhead, the rest are dashed outlines at their planned times; a stopped run greys out the steps it never reached. Header: demo, cycle, Running / Finished / Stopped, elapsed / cycle length. Times are what the dashboard commanded: the servos report no "arrived" signal |
 
 **Right column**: the controls tabs on top, details and streams below.
 
@@ -75,8 +83,10 @@ toast (sonner, panel-coloured; the icon shows success, info, warning or error).
   without it the built-in simulation eases toward it (`robot.store.ts`).
 - **Layout separate from content.** `layout/app-layout.tsx` is the page shell
   (header, toolbar, main, right column, toaster) and `layout/panel-grid.tsx` the
-  grid of panels. `app/app.tsx` fills the slots; every panel uses the shared
-  `components/shared/panel.tsx`.
+  grid of panels; both switch between resizable groups (desktop) and a stacked
+  column (`useIsDesktop`, `layout/layout.content.ts`). `app/app.tsx` fills the
+  slots; every panel uses the shared `components/shared/panel.tsx`, whose body is a
+  size container, so content adapts to the panel's width, not the window's.
 - **Lazy 3D and charts.** three.js and Recharts load as their own chunks, so the
   controls render first.
 - **React 19 idioms**: `<Context value>` and `use()`, ref as a prop (no
@@ -90,7 +100,7 @@ src/
   main.tsx                  mounts <App />
   index.css                 Tailwind v4 theme tokens (Poppins, dark control-room palette)
   app/                      app root and providers
-  layout/                   page shell
+  layout/                   page shell, resizable panel grid, movable panel slots, desktop breakpoint
   components/
     ui/                     shadcn/ui components (generated, not hand-edited), incl. chart (Recharts)
     shared/                 Panel, Heading, Field, Setting, NumberStepper, shared styles

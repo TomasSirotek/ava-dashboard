@@ -15,9 +15,9 @@ export function useRobotFeed() {
     let retry: number | undefined
     let ros: Ros | undefined
     let disposed = false
-    // Messages received since the last rate update, and when that window started (0 = not live yet).
+    // Messages received since the last rate update, and when that window started (null = not live yet).
     let received = 0
-    let windowStart = 0
+    let windowStart: number | null = null
 
     const startMock = () => {
       if (mock === undefined) mock = window.setInterval(store.tick, MOCK_TICK_MS)
@@ -62,9 +62,9 @@ export function useRobotFeed() {
         // and the rosbridge round trip as the time a rosapi call takes.
         probe = window.setInterval(() => {
           const now = performance.now()
-          if (windowStart > 0) store.setLink({ rate: (received * 1000) / (now - windowStart) })
+          if (windowStart !== null) store.setLink({ rate: (received * 1000) / (now - windowStart) })
           received = 0
-          windowStart = live ? now : 0
+          windowStart = live ? now : null
           getTime.callService({}, () => store.setLink({ latency: Math.round(performance.now() - now) }))
         }, LATENCY_PROBE_MS)
       })
@@ -73,7 +73,7 @@ export function useRobotFeed() {
         attachRos(null)
         window.clearInterval(probe)
         received = 0
-        windowStart = 0
+        windowStart = null
         store.setLink({ connected: false, source: "mock", rate: null, latency: null })
         startMock()
         if (!disposed) retry = window.setTimeout(connect, RECONNECT_MS)

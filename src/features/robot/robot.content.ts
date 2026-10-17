@@ -7,7 +7,7 @@ export const JOINT_LABELS = ["Shoulder pan", "Shoulder lift", "Elbow flex", "Wri
 // Same layout as the URDF effort limits and tools/torque_monitor.py.
 export const JOINT_SERVOS = ["MG996R", "MG996R", "MG996R", "SG90", "SG90", "SG90"]
 
-export const ROBOT_ID = "ava-arm-01"
+export const ROBOT_ID = "monitoring-session-226451-3879"
 export const ROBOT_MODEL = "6-DOF · 6 servos"
 
 // Tooltip on the angle next to each joint slider (see selectReadout).

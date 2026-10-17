@@ -17,3 +17,14 @@ export const JOINT_STEPS = { step: 1, smallStep: 0.1, largeStep: 10 }
 
 // Effort above this % of stall torque is shown as a warning in the joints table.
 export const EFFORT_WARN = 85
+
+// Joints table columns. `className` hides a column while the table's panel is narrow (container query on the
+// panel body): Servo below 24 rem, Target below 28 rem, Range below 32 rem. Joint, Angle and Effort always show.
+export const JOINT_TABLE_COLUMNS = [
+  { label: "Joint", className: "" },
+  { label: "Servo", className: "hidden @sm:table-cell" },
+  { label: "Angle", className: "" },
+  { label: "Target", className: "hidden @md:table-cell" },
+  { label: "Range", className: "hidden @lg:table-cell" },
+  { label: "Effort", className: "" },
+]

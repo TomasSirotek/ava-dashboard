@@ -19,11 +19,13 @@ export function App() {
         toolbar={<StatusBar />}
         main={
           <PanelGrid
-            primary={<Viewport />}
-            side={<RobotStatePanel />}
-            left={<JointsTable />}
-            right={<SystemLogs />}
-            footer={<DemoTimeline />}
+            panels={{
+              viewport: <Viewport />,
+              "robot-state": <RobotStatePanel />,
+              joints: <JointsTable />,
+              logs: <SystemLogs />,
+              timeline: <DemoTimeline />,
+            }}
           />
         }
         aside={
