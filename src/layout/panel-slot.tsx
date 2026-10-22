@@ -5,11 +5,12 @@ import type { GridPanelId, IPanelSlotProps } from "@/layout/app-layout.interface
 import { usePanelLayoutStore } from "@/layout/layout.store"
 import { cn } from "@/lib/utils"
 
-// One grid cell holding a panel. Its Panel's header is the drag handle (via the context); dropping another
+// One grid cell holding a panel. Its Panel's header is the drag handle and has a close button (via the context); dropping another
 // panel here swaps the two. While a panel is dragged over the cell, an accent-coloured placeholder covers it
 // to show where the dragged panel will land.
 export function PanelSlot({ id, children, className }: IPanelSlotProps) {
   const swap = usePanelLayoutStore((s) => s.swap)
+  const close = usePanelLayoutStore((s) => s.close)
   const [over, setOver] = useState(false)
   // A drag can end anywhere (Esc, dropped outside the grid): always clear the placeholder then.
   useEffect(() => {
@@ -23,7 +24,7 @@ export function PanelSlot({ id, children, className }: IPanelSlotProps) {
     }
   }, [over])
   return (
-    <PanelDragContext value={{ id }}>
+    <PanelDragContext value={{ id, close: () => close(id) }}>
       <div
         onDragOver={(e) => {
           if (!e.dataTransfer.types.includes(PANEL_DRAG_TYPE)) return

@@ -86,8 +86,10 @@ export const STEP_KIND_STYLES: Record<StepKind, { label: string; className: stri
 }
 export const HOLD_STYLE = { label: "Hold", className: "bg-muted-foreground/40" }
 
-export const RUN_STATUS_STYLES: Record<IDemoRun["status"], { label: string; className: string }> = {
+export const RUN_STATUS_STYLES: Record<IDemoRun["status"] | "ready", { label: string; className: string }> = {
+  ready: { label: "Ready", className: "text-muted-foreground" },
   running: { label: "Running", className: "text-green-600 dark:text-green-400" },
+  paused: { label: "Paused", className: "text-amber-600 dark:text-amber-400" },
   finished: { label: "Finished", className: "text-foreground" },
   stopped: { label: "Stopped", className: "text-amber-600 dark:text-amber-400" },
 }

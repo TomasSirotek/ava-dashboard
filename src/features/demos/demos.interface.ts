@@ -20,36 +20,54 @@ export interface IDemo {
   steps: IDemoStep[]
 }
 
-/** When one step of the current cycle actually ran (epoch ms); `end` is null while it is running. */
+/** When one step of the current cycle ran, in run time: ms since the cycle start, pauses excluded. `end` is null while it runs. */
 export interface IStepTrace {
   start: number
   end: number | null
 }
 
+export type RunStatus = "running" | "paused" | "finished" | "stopped"
+
 /** The current or last demo run, as executed: what the timeline draws. */
 export interface IDemoRun {
   demo: DemoId
-  /** 1-based; a looping demo starts a new cycle each time it wraps to step 1. */
+  /** Repeat after the last step (the transport's loop setting when the run started). */
+  loop: boolean
+  /** 1-based; a looping run starts a new cycle each time it wraps to step 1. */
   cycle: number
-  /** Start of the current cycle, epoch ms. */
+  /** Wall time (epoch ms) the current cycle started. */
   startedAt: number
+  /** Paused time within the current cycle so far (ms), and since when it is paused (epoch ms) while paused. */
+  pausedMs: number
+  pausedAt: number | null
   /** One entry per step started in this cycle, in order. */
   steps: IStepTrace[]
-  status: "running" | "finished" | "stopped"
+  status: RunStatus
 }
 
 export interface IDemoStore {
+  /** Demo picked in the timeline; Play runs it. */
+  selected: DemoId
+  /** Transport loop setting; defaults to the selected demo's own. */
+  loop: boolean
   running: DemoId | null
   /** Index of the step being executed. */
   step: number
   /** Kept after the demo ends so the timeline still shows how it went; replaced by the next start. */
   run: IDemoRun | null
-  start: (id: DemoId) => void
-  /** Interrupt the running demo (button, e-stop, leaving Automatic). */
+  /** Pick a demo (ignored while one is running). */
+  select: (id: DemoId) => void
+  setLoop: (loop: boolean) => void
+  /** Run the selected demo from its first step. */
+  start: () => void
+  /** Hold the arm where it is; resume repeats the interrupted step. */
+  pause: () => void
+  resume: () => void
+  /** Interrupt the running demo (Stop, e-stop, leaving Automatic). */
   stop: () => void
-  /** The runner moved on to `step` (0 after the last step of a looping demo starts a new cycle). */
+  /** The runner moved on to `step` (0 after the last step of a looping run starts a new cycle). */
   beginStep: (step: number) => void
-  /** A one-shot demo completed its last step. */
+  /** A one-shot run completed its last step. */
   finish: () => void
 }
 

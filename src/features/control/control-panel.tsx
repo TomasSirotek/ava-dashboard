@@ -7,7 +7,6 @@ import type { ControlMode } from "@/features/control/control.interface"
 import { useControlStore } from "@/features/control/control.store"
 // Controller mode (disabled): import { ControllerStatus } from "@/features/control/controller-status"
 import { VoiceSettings } from "@/features/control/voice-settings"
-import { DemoPanel } from "@/features/demos/demo-panel"
 
 export function ControlPanel() {
   const mode = useControlStore((s) => s.mode)
@@ -47,7 +46,7 @@ export function ControlPanel() {
       )}
       {mode === "auto" && (
         <>
-          <DemoPanel />
+          <p className="text-xs text-muted-foreground">Pick a demo and press Play in the Demo timeline.</p>
           <VoiceSettings />
         </>
       )}

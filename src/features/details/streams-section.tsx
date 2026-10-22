@@ -1,10 +1,12 @@
 import { capsLabel } from "@/components/shared/shared.styles"
-import { ROSBRIDGE_URL, TRAJECTORY_TOPIC } from "@/features/robot/robot.content"
+import { useConnectionStore } from "@/features/connection/connection.store"
+import { TRAJECTORY_TOPIC } from "@/features/robot/robot.content"
 import { useRobotStore } from "@/features/robot/robot.store"
 import { clockTime, cn } from "@/lib/utils"
 
 // The ROS connections the dashboard uses, with what is actually measured on them; "—" while there is nothing to measure.
 export function StreamsSection() {
+  const url = useConnectionStore((s) => s.url)
   const connected = useRobotStore((s) => s.connected)
   const live = useRobotStore((s) => s.source === "ros")
   const rate = useRobotStore((s) => s.rate)
@@ -12,7 +14,7 @@ export function StreamsSection() {
   const sent = useRobotStore((s) => s.commandsSent)
   const lastAt = useRobotStore((s) => s.lastCommandAt)
   const streams = [
-    { name: "rosbridge", detail: ROSBRIDGE_URL, value: latency === null ? "—" : `${latency} ms RTT`, on: connected },
+    { name: "rosbridge", detail: url, value: latency === null ? "—" : `${latency} ms RTT`, on: connected },
     { name: "/joint_states", detail: "in · sensor_msgs/JointState", value: rate === null ? "—" : `${rate.toFixed(1)} Hz`, on: live },
     {
       name: TRAJECTORY_TOPIC,

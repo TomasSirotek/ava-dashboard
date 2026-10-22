@@ -31,6 +31,8 @@ export interface IPersistentPanelGroupProps extends Omit<GroupProps, "defaultLay
 export interface IPanelDrag {
   /** Panel id written to the drag data. */
   id: string
+  /** Close the panel (the grid reflows; it can be reopened from the toolbar's Panels menu). */
+  close: () => void
 }
 
 export interface IHeadingProps {
@@ -56,4 +58,12 @@ export interface INumberStepperProps extends Omit<NumberField.Root.Props, "forma
   className?: string
   /** Decimal places shown. */
   fractionDigits?: number
+}
+
+export interface IProgressBarProps {
+  /** Accessible name, e.g. "Connecting to ws://127.0.0.1:9090". */
+  label: string
+  /** Done fraction 0..1 for a determinate bar; omit for an indeterminate one. */
+  value?: number
+  className?: string
 }

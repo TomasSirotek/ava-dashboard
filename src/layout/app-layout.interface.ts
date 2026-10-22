@@ -1,3 +1,4 @@
+import type { LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 
 export interface IAppLayoutProps {
@@ -19,10 +20,23 @@ export interface IPanelGridProps {
 }
 
 export interface IPanelLayoutStore {
-  /** Panel shown in each grid slot: top row left and right, middle row left and right, then the full-width bottom row. */
+  /**
+   * Every panel in grid order; the open ones fill the grid two per row (an odd last one takes the full width).
+   * A closed panel keeps its place in the list.
+   */
   order: GridPanelId[]
-  /** Exchange the slots of two panels (a panel dropped onto another). */
+  /** Closed panels. */
+  hidden: GridPanelId[]
+  /** Exchange the places of two panels (a panel dropped onto another). */
   swap: (a: GridPanelId, b: GridPanelId) => void
+  close: (id: GridPanelId) => void
+  /** Reopen a closed panel as the last one in the grid. */
+  open: (id: GridPanelId) => void
+}
+
+export interface IGridPanelItem {
+  label: string
+  icon: LucideIcon
 }
 
 export interface IPanelSlotProps {

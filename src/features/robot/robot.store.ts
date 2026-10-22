@@ -23,7 +23,8 @@ export const useRobotStore = create<IRobotStore>()((set) => ({
     }),
   // Live /joint_states: reorder by name into JOINT_NAMES, convert to the UI's units
   // (degrees, effort as % of stall). Joints missing from the message keep their last value.
-  // A message without effort (the real arm) clears it, so no torque is shown.
+  // A message without measured effort (the real arm) clears it, so no torque is shown. ros2_control's
+  // joint_state_broadcaster fills effort with NaN there, which rosbridge sends as null.
   applyJointState: (msg) =>
     set((s) => {
       const index = new Map(msg.name.map((n, i) => [n, i]))
@@ -37,10 +38,9 @@ export const useRobotStore = create<IRobotStore>()((set) => ({
           name: JOINT_NAMES,
           position: pick(msg.position, s.jointState.position, (v) => v * RAD_TO_DEG),
           velocity: pick(msg.velocity, s.jointState.velocity, (v) => v * RAD_TO_DEG),
-          effort:
-            msg.effort.length === 0
-              ? null
-              : pick(msg.effort, s.jointState.effort, (v, i) => Math.min(100, (Math.abs(v) / SERVO_STALL_NM[JOINT_SERVOS[i]]) * 100)),
+          effort: !msg.effort.some(Number.isFinite)
+            ? null
+            : pick(msg.effort, s.jointState.effort, (v, i) => Math.min(100, (Math.abs(v) / SERVO_STALL_NM[JOINT_SERVOS[i]]) * 100)),
         },
       }
     }),
@@ -54,5 +54,5 @@ export const useRobotStore = create<IRobotStore>()((set) => ({
 // - sim: the built-in simulation (no rosbridge or no /joint_states)
 // - live: measured, by Gazebo or ros2_control's mock hardware; both also publish effort
 // - cmd: the real arm. Its hobby servos report nothing back, so ava_hardware publishes the commanded angle
-//   (clamped and rate-limited) and no effort. A missing effort is how the real arm is told apart.
+//   (clamped and rate-limited) and no measured effort. That is how the real arm is told apart.
 export const selectReadout = (s: IRobotState): JointReadout => (s.source === "mock" ? "sim" : s.jointState.effort ? "live" : "cmd")

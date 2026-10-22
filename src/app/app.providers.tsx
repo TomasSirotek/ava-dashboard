@@ -1,4 +1,5 @@
 import type { IAppProvidersProps } from "@/app/app.interface"
+import { useLinkNotifier } from "@/features/connection/use-link-notifier"
 // Controller mode (disabled): import { useGamepadWatcher } from "@/features/control/use-gamepad-watcher"
 import { useDemoRunner } from "@/features/demos/use-demo-runner"
 import { useJointHistory } from "@/features/history/use-joint-history"
@@ -11,6 +12,7 @@ import { ThemeProvider } from "@/features/theme/theme-provider"
 export function AppProviders({ children }: IAppProvidersProps) {
   // First, so its store subscriptions exist before the feeds' first state changes.
   useSystemLog()
+  useLinkNotifier()
   useRobotFeed()
   useCommandSender()
   useDemoRunner()

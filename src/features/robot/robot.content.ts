@@ -17,9 +17,9 @@ export const READOUT_HINTS: Record<JointReadout, string> = {
   cmd: "Commanded angle: the real servos report no position, so this is where the arm was told to go",
 }
 
-// rosbridge websocket (ros2 launch rosbridge_server rosbridge_websocket_launch.xml). Override with VITE_ROSBRIDGE_URL.
-export const ROSBRIDGE_URL = import.meta.env.VITE_ROSBRIDGE_URL ?? "ws://localhost:9090"
 export const RECONNECT_MS = 3000
+// A connection attempt that has not opened by then is given up (and retried), e.g. an unreachable host.
+export const CONNECT_TIMEOUT_MS = 5000
 // Round-trip latency is measured by timing a rosapi call (started by the rosbridge launch file).
 export const LATENCY_PROBE_MS = 2000
 

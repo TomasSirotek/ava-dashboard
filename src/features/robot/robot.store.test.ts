@@ -77,4 +77,11 @@ describe("selectReadout", () => {
     apply([])
     expect(selectReadout(useRobotStore.getState())).toBe("cmd")
   })
+
+  it("is cmd with no effort shown when the real arm's effort arrives as NaN (null over rosbridge)", () => {
+    apply([Number.NaN, Number.NaN, Number.NaN, Number.NaN, Number.NaN, Number.NaN])
+    expect(selectReadout(useRobotStore.getState())).toBe("cmd")
+    apply(JSON.parse(JSON.stringify([Number.NaN, Number.NaN, Number.NaN, Number.NaN, Number.NaN, Number.NaN])))
+    expect(useRobotStore.getState().jointState.effort).toBeNull()
+  })
 })

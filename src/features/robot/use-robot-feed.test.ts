@@ -1,7 +1,16 @@
 // @vitest-environment jsdom
 import { act, cleanup, renderHook } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
-import { INITIAL_ROBOT_STATE, JOINT_NAMES, LATENCY_PROBE_MS, MOCK_TICK_MS, RECONNECT_MS } from "@/features/robot/robot.content"
+import { CONNECT_WINDOW_MS, DEFAULT_ROSBRIDGE_URL } from "@/features/connection/connection.content"
+import { useConnectionStore } from "@/features/connection/connection.store"
+import {
+  CONNECT_TIMEOUT_MS,
+  INITIAL_ROBOT_STATE,
+  JOINT_NAMES,
+  LATENCY_PROBE_MS,
+  MOCK_TICK_MS,
+  RECONNECT_MS,
+} from "@/features/robot/robot.content"
 import type { IJointStateMsg } from "@/features/robot/robot.interface"
 import { attachRos } from "@/features/robot/robot.ros"
 import { useRobotStore } from "@/features/robot/robot.store"
@@ -15,13 +24,15 @@ const fake = vi.hoisted(() => {
     jointStates: ((msg: unknown) => void) | null = null
     serviceReplies: (() => void)[] = []
     closed = false
+    url = ""
     constructor() {
       fake.connections.push(this)
     }
     on(event: string, handler: Handler) {
       this.handlers[event] = handler
     }
-    connect() {
+    connect(url: string) {
+      this.url = url
       return Promise.resolve()
     }
     close() {
@@ -58,6 +69,7 @@ vi.mock("@/features/robot/robot.ros", () => ({ attachRos: vi.fn() }))
 
 const latest = () => fake.connections.at(-1) as InstanceType<typeof fake.FakeRos>
 const link = () => useRobotStore.getState()
+const connection = () => useConnectionStore.getState()
 const msg: IJointStateMsg = { name: JOINT_NAMES, position: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6], velocity: [], effort: [] }
 const receive = (n = 1) => act(() => Array.from({ length: n }, () => latest().jointStates?.(msg)))
 
@@ -65,6 +77,7 @@ beforeEach(() => {
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval", "Date", "performance"] })
   vi.mocked(attachRos).mockClear()
   fake.connections.length = 0
+  useConnectionStore.setState({ url: DEFAULT_ROSBRIDGE_URL, enabled: true, attempt: 0, tryingUntil: null, tries: 0 })
   useRobotStore.setState(structuredClone(INITIAL_ROBOT_STATE))
   renderHook(() => useRobotFeed())
 })
@@ -133,5 +146,80 @@ describe("useRobotFeed", () => {
     expect(latest().closed).toBe(true)
     act(() => latest().emit("connection"))
     expect(link().connected).toBe(false)
+  })
+
+  it("Disconnect closes the link and stops retrying; Connect reconnects at once to the new URL", () => {
+    act(() => latest().emit("connection"))
+    receive()
+    const first = latest()
+    act(() => useConnectionStore.getState().disconnect())
+    expect(first.closed).toBe(true)
+    expect(link()).toMatchObject({ connected: false, source: "mock" })
+    act(() => vi.advanceTimersByTime(RECONNECT_MS * 3))
+    expect(fake.connections).toHaveLength(1)
+    act(() => {
+      useConnectionStore.getState().connect("ws://10.0.0.5:9090")
+    })
+    expect(fake.connections).toHaveLength(2)
+    expect(latest().url).toBe("ws://10.0.0.5:9090")
+  })
+
+  it("Connect with an invalid URL changes nothing", () => {
+    expect(useConnectionStore.getState().connect("http://127.0.0.1:9090")).toBe(false)
+    expect(useConnectionStore.getState().connect("not a url")).toBe(false)
+    expect(fake.connections).toHaveLength(1)
+    expect(latest().url).toBe(DEFAULT_ROSBRIDGE_URL)
+  })
+
+  it("opens a connect window on start, counts attempts and closes the window when the link opens", () => {
+    expect(connection().tryingUntil).toBe(Date.now() + CONNECT_WINDOW_MS)
+    expect(connection().tries).toBe(1)
+    act(() => latest().emit("close"))
+    act(() => vi.advanceTimersByTime(RECONNECT_MS))
+    expect(connection().tries).toBe(2)
+    act(() => latest().emit("connection"))
+    expect(connection().tryingUntil).toBeNull()
+  })
+
+  it("gives up when the connect window runs out, then waits for Connect", () => {
+    // Every attempt fails at once (rosbridge refuses), so attempts follow every RECONNECT_MS.
+    for (let t = 0; t < CONNECT_WINDOW_MS; t += RECONNECT_MS) {
+      act(() => latest().emit("close"))
+      act(() => vi.advanceTimersByTime(RECONNECT_MS))
+    }
+    expect(connection().tryingUntil).toBeNull()
+    const attempts = fake.connections.length
+    act(() => vi.advanceTimersByTime(CONNECT_WINDOW_MS))
+    expect(fake.connections).toHaveLength(attempts) // no more attempts in the background
+    act(() => {
+      connection().connect(DEFAULT_ROSBRIDGE_URL)
+    })
+    expect(fake.connections).toHaveLength(attempts + 1)
+    expect(connection().tryingUntil).toBe(Date.now() + CONNECT_WINDOW_MS)
+    expect(connection().tries).toBe(1)
+  })
+
+  it("opens a new connect window when a working link drops", () => {
+    act(() => latest().emit("connection"))
+    receive()
+    act(() => vi.advanceTimersByTime(CONNECT_WINDOW_MS * 2)) // long after the first window
+    act(() => latest().emit("close"))
+    expect(connection().tryingUntil).toBe(Date.now() + CONNECT_WINDOW_MS)
+    act(() => vi.advanceTimersByTime(RECONNECT_MS))
+    expect(fake.connections).toHaveLength(2)
+  })
+
+  it("gives up a handshake that hangs, then retries within the window", () => {
+    act(() => {
+      connection().connect(DEFAULT_ROSBRIDGE_URL)
+    })
+    const hung = latest()
+    act(() => vi.advanceTimersByTime(CONNECT_TIMEOUT_MS))
+    expect(hung.closed).toBe(true)
+    expect(connection().tryingUntil).not.toBeNull()
+    act(() => hung.emit("connection")) // late answer from the abandoned attempt
+    expect(link().connected).toBe(false)
+    act(() => vi.advanceTimersByTime(RECONNECT_MS))
+    expect(latest()).not.toBe(hung)
   })
 })

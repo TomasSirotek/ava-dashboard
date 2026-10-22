@@ -17,7 +17,7 @@ beforeEach(() => {
   useLogStore.setState({ entries: [] })
   useRobotStore.setState(structuredClone(INITIAL_ROBOT_STATE))
   useControlStore.setState({ mode: "manual", estop: false, pad: null })
-  useDemoStore.setState({ running: null, step: 0, run: null })
+  useDemoStore.setState({ selected: "wave", loop: true, running: null, step: 0, run: null })
   renderHook(() => useSystemLog())
 })
 afterEach(() => cleanup())
@@ -39,15 +39,25 @@ describe("useSystemLog", () => {
     ])
   })
 
-  it("tells a finished demo from a stopped one", () => {
-    act(() => useDemoStore.getState().start("home-park"))
+  it("tells a finished demo from a stopped one and logs pause and resume", () => {
+    act(() => {
+      useDemoStore.getState().select("home-park")
+      useDemoStore.getState().start()
+    })
     act(() => useDemoStore.getState().finish())
-    act(() => useDemoStore.getState().start("wave"))
+    act(() => {
+      useDemoStore.getState().select("wave")
+      useDemoStore.getState().start()
+    })
+    act(() => useDemoStore.getState().pause())
+    act(() => useDemoStore.getState().resume())
     act(() => useDemoStore.getState().stop())
     expect(logged()).toEqual([
       ["info", "demo", "Demo started: Home & park"],
       ["success", "demo", "Demo finished: Home & park"],
       ["info", "demo", "Demo started: Wave"],
+      ["info", "demo", "Demo paused: Wave"],
+      ["info", "demo", "Demo resumed: Wave"],
       ["info", "demo", "Demo stopped: Wave"],
     ])
   })

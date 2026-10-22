@@ -8,7 +8,7 @@ export const PART_CATEGORIES: IPartCategoryItem[] = [
   { value: "power", label: "Power" },
 ]
 
-// Servo data matches the simulation and tools/torque_monitor.py (docs/electronics/design_proposal.md for the build).
+// Servo data matches the simulation and tools/torque_monitor.py in ava-arm.
 const SERVO_CATALOGUE: Record<string, Pick<IPart, "image" | "specs">> = {
   MG996R: {
     image: "parts/mg996.webp",
@@ -65,6 +65,7 @@ export const PARTS: IPart[] = [
     name: "PCA9685",
     kind: "Servo driver · 16 channels",
     category: "controller",
+    image: "parts/pca9685.jpg",
     specs: [
       { label: "Logic", value: "3.3 V from the ESP32" },
       { label: "Servo rail (V+)", value: "6.0 V" },
@@ -78,6 +79,7 @@ export const PARTS: IPart[] = [
     name: "XL4016E1",
     kind: "Step-down · 24 V to 6.0 V servo rail",
     category: "power",
+    image: "parts/xl4016e1.jpg",
     specs: [
       { label: "Input", value: "24 V adapter (2 A)" },
       { label: "Output", value: "6.0 V, set by trimmer" },

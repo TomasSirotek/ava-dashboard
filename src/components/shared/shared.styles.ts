@@ -15,5 +15,8 @@ export const panelStack = "flex flex-col divide-y *:p-4"
 // Velocity scale) are text-sm font-medium like the form Label; helper text is text-xs text-muted-foreground.
 export const capsLabel = "font-sans text-[11px] font-medium tracking-wider uppercase"
 
+// Toolbar chip under the header (status, joint angles, Panels menu).
+export const toolbarChip = "flex h-7 items-center gap-1.5 rounded-sm border px-2.5 text-xs font-medium whitespace-nowrap"
+
 // A joined group of cells (header clock): outline plus hairlines between the cells.
 export const cellGroup = "flex divide-x overflow-hidden rounded-sm border"
